@@ -116,14 +116,33 @@ create policy "Users can insert their own exports"
   with check (auth.uid() = profile_id);
 ```
 
-## 6. Set up Storage bucket
+## 6. Create Auth Trigger for Profile Creation
+
+When a user signs up with magic link, we need to automatically create a profile. Run this in SQL Editor:
+
+```sql
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email)
+  values (new.id, new.email);
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+```
+
+## 7. Set up Storage bucket
 
 In the Supabase dashboard (Storage tab):
 1. Create a new bucket called `uploads`
-2. Set it to Private
-3. Add a policy to allow authenticated users to upload and read files in their own folder
+2. Set it to **Private**
+3. Files are stored as `<user-uuid>/<filename>`
 
-Or use this SQL:
+Create these RLS policies in SQL Editor:
 
 ```sql
 create policy "Users can upload files to their folder"
@@ -135,6 +154,13 @@ create policy "Users can upload files to their folder"
 
 create policy "Users can read files from their folder"
   on storage.objects for select
+  using (
+    bucket_id = 'uploads' and
+    auth.uid()::text = split_part(name, '/', 1)
+  );
+
+create policy "Users can delete files from their folder"
+  on storage.objects for delete
   using (
     bucket_id = 'uploads' and
     auth.uid()::text = split_part(name, '/', 1)
