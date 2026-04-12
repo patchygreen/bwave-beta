@@ -7,6 +7,13 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Fetch recent waves
+  const { data: recentWaves } = await supabase
+    .from('product_waves')
+    .select('id, created_at, extracted_data')
+    .order('created_at', { ascending: false })
+    .limit(5)
+
   return (
     <div>
       <div className="mb-8">
@@ -33,10 +40,29 @@ export default async function DashboardPage() {
           </a>
         </div>
 
-        {/* Recent Waves (placeholder) */}
+        {/* Recent Waves */}
         <div className="bg-white rounded-lg border border-slate-200 p-6">
           <h2 className="text-xl font-medium text-slate-900 mb-4">Recent waves</h2>
-          <p className="text-slate-600 text-sm">No waves yet. Create your first one!</p>
+          {recentWaves && recentWaves.length > 0 ? (
+            <div className="space-y-2">
+              {recentWaves.map((wave) => (
+                <a
+                  key={wave.id}
+                  href={`/app/review/${wave.id}`}
+                  className="block p-2 rounded hover:bg-slate-50 text-sm"
+                >
+                  <p className="text-slate-900 font-medium">
+                    {wave.extracted_data?.title || 'Untitled'}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {new Date(wave.created_at).toLocaleDateString()}
+                  </p>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="text-slate-600 text-sm">No waves yet. Create your first one!</p>
+          )}
         </div>
       </div>
     </div>
