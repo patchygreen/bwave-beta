@@ -54,14 +54,14 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
       <div className="max-w-sm w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-light tracking-tight mb-2 text-slate-900">
-            bwave
-          </h1>
-          <p className="text-slate-600">Sign in to your account</p>
+        {/* Logo */}
+        <div className="text-center mb-8 flex justify-center">
+          <img src="/logo.svg" alt="bwave" width="120" height="40" />
         </div>
+
+        <p className="text-center text-slate-600 mb-6">Sign in to your account</p>
 
         <form onSubmit={handleSignIn} className="space-y-4">
           <div>
@@ -77,16 +77,17 @@ export default function LoginPage() {
               required
               aria-required="true"
               aria-describedby={error ? 'email-error' : undefined}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-transparent"
               disabled={loading}
             />
           </div>
 
+          {/* Magic link button - using brand blue */}
           <button
             type="submit"
             disabled={loading}
             aria-busy={loading}
-            className="w-full bg-slate-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-bwave-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-bwave-purple disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md hover:shadow-lg"
           >
             {loading ? 'Sending...' : 'Send magic link'}
           </button>
@@ -98,7 +99,7 @@ export default function LoginPage() {
             aria-live="polite"
             className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800"
           >
-            {message}
+            ✓ {message}
           </div>
         )}
 
@@ -109,14 +110,14 @@ export default function LoginPage() {
             aria-live="assertive"
             className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800"
           >
-            {error}
+            ✕ {error}
           </div>
         )}
 
         <p className="text-center text-sm text-slate-600 mt-6">
           <a
             href="/"
-            className="hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 rounded px-2 py-1"
+            className="text-bwave-blue hover:text-bwave-purple focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:ring-offset-2 rounded px-2 py-1"
           >
             Back to home
           </a>

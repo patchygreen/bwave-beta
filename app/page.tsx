@@ -1,19 +1,32 @@
 export default function Home() {
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-4xl font-light tracking-tight mb-3 text-slate-900">
-          bwave
-        </h1>
+        {/* Logo */}
+        <div className="mb-8 flex justify-center">
+          <img src="/logo.svg" alt="bwave" width="160" height="52" />
+        </div>
+
+        {/* Tagline */}
         <p className="text-lg text-slate-600 mb-8">
           Turn supplier PDFs into Shopify-ready CSVs
         </p>
+
+        {/* CTA Button - using brand blue */}
         <a
           href="/login"
-          className="inline-block bg-slate-900 text-white px-8 py-3 rounded-lg font-medium hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900"
+          className="inline-block bg-bwave-blue text-white px-8 py-3 rounded-lg font-medium hover:bg-bwave-purple transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bwave-blue shadow-lg hover:shadow-xl"
         >
           Get started
         </a>
+
+        {/* Accent line with brand colors */}
+        <div className="mt-8 flex justify-center gap-1">
+          <div className="h-1 w-6 bg-bwave-blue rounded-full" />
+          <div className="h-1 w-6 bg-bwave-cyan rounded-full" />
+          <div className="h-1 w-6 bg-bwave-purple rounded-full" />
+          <div className="h-1 w-6 bg-bwave-pink rounded-full" />
+        </div>
       </div>
     </main>
   )

@@ -47,7 +47,7 @@ export default function UploadForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* File Input */}
-      <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-slate-400 transition-colors focus-within:ring-2 focus-within:ring-slate-900 focus-within:ring-offset-2">
+      <div className="border-2 border-dashed border-bwave-blue/30 rounded-lg p-8 text-center hover:border-bwave-blue/50 transition-colors focus-within:ring-2 focus-within:ring-bwave-blue focus-within:ring-offset-2 bg-gradient-to-br from-bwave-blue/5 to-bwave-cyan/5">
         <input
           ref={fileInputRef}
           type="file"
@@ -82,12 +82,12 @@ export default function UploadForm() {
         </div>
       )}
 
-      {/* Submit Button */}
+      {/* Submit Button - using brand blue with hover to cyan */}
       <button
         type="submit"
         disabled={loading || !fileName}
         aria-busy={loading}
-        className="w-full bg-slate-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full bg-bwave-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-bwave-cyan disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md hover:shadow-lg"
       >
         {loading ? 'Uploading...' : 'Continue'}
       </button>

@@ -20,15 +20,15 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white" role="banner">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      <header className="border-b border-bwave-blue/20 bg-white shadow-sm" role="banner">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
           <a
             href="/app/dashboard"
-            className="text-2xl font-light text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 rounded px-2 py-1"
+            className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:ring-offset-2 rounded px-2 py-1"
           >
-            bwave
+            <img src="/logo.svg" alt="bwave" width="120" height="40" />
           </a>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <span className="text-sm text-slate-600" aria-label="Logged in as">
               {user.email}
             </span>
