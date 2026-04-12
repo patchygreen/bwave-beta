@@ -3,27 +3,36 @@ import UploadForm from '@/components/UploadForm'
 export default function WavePage() {
   return (
     <div className="max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-light tracking-tight text-slate-900 mb-2">
+      <div className="mb-10">
+        <h1 className="text-4xl font-light tracking-tight text-white mb-2">
           Create a product wave
         </h1>
-        <p className="text-slate-600">
+        <p className="text-slate-400">
           Upload a supplier PDF or label image to extract product information
         </p>
       </div>
 
-      <div className="bg-white rounded-lg border border-slate-200 p-6">
+      <div className="bg-gradient-to-br from-slate-900/50 to-slate-900/30 border border-slate-700 rounded-lg p-8 mb-8 hover:border-slate-600 transition-all">
         <UploadForm />
       </div>
 
-      <div className="mt-8 space-y-4 text-sm text-slate-600">
-        <section>
-          <h2 className="font-medium text-slate-900 mb-1 text-base">Supported formats</h2>
-          <p>PDF documents, PNG, JPG, WebP images</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <section className="bg-slate-900/50 border border-slate-700 rounded-lg p-6">
+          <h2 className="flex items-center gap-2 font-semibold text-white mb-3 text-base">
+            <span>📄</span> Supported formats
+          </h2>
+          <p className="text-slate-300 text-sm">
+            PDF documents, PNG, JPG, WebP images — up to 10MB each
+          </p>
         </section>
-        <section>
-          <h2 className="font-medium text-slate-900 mb-1 text-base">What happens next</h2>
-          <p>We'll extract product information using AI and show you a review screen where you can edit before exporting</p>
+
+        <section className="bg-slate-900/50 border border-slate-700 rounded-lg p-6">
+          <h2 className="flex items-center gap-2 font-semibold text-white mb-3 text-base">
+            <span>✨</span> What happens next
+          </h2>
+          <p className="text-slate-300 text-sm">
+            We'll extract product data using AI and show you an editable review screen before exporting to CSV
+          </p>
         </section>
       </div>
     </div>
