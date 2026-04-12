@@ -44,19 +44,25 @@ export const dynamic = 'force-dynamic'
  * @see https://supabase.com/docs/guides/auth/server-side/nextjs
  */
 export async function GET(request: NextRequest) {
+  console.log('🔐 Auth callback START')
+
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') || '/app/dashboard'
 
+  console.log('📍 Code present:', !!code)
+  console.log('📍 Redirect to:', next)
+
   // VALIDATION: Check if authorization code exists
   // If not present, the link was invalid or expired
   if (!code) {
-    console.warn('Auth callback called without code parameter - invalid or expired link')
+    console.warn('❌ Auth callback called without code parameter - invalid or expired link')
     return NextResponse.redirect(new URL('/login?error=no_code', request.url))
   }
 
   // Prepare server cookie storage
   const cookieStore = cookies()
+  console.log('📍 Cookie store ready')
 
   // Prepare the response we'll send back to browser
   // Start with redirect to dashboard (or custom next URL)
@@ -88,30 +94,35 @@ export async function GET(request: NextRequest) {
   )
 
   try {
+    console.log('🔄 Exchanging code for session...')
+
     // EXCHANGE: Trade temporary code for permanent session token
     // Supabase validates the code and returns a session object
     // Our cookie handlers automatically store the session token
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    const { error: exchangeError, data } = await supabase.auth.exchangeCodeForSession(code)
+
+    console.log('📍 Exchange complete. Error:', exchangeError, 'Data:', !!data)
 
     if (exchangeError) {
-      console.error('Auth exchange error:', exchangeError)
+      console.error('❌ Auth exchange error:', JSON.stringify(exchangeError))
       return NextResponse.redirect(new URL('/login?error=auth', request.url))
     }
 
     // If we get here, exchange was successful
     // Session cookie is now set in both response headers and server store
-    console.log('Auth successful: Code exchanged for session')
+    console.log('✅ Auth successful: Code exchanged for session')
   } catch (error) {
     // CODE EXCHANGE FAILED
     // This can happen if:
     // - Code is invalid/expired
     // - Code was already used
     // - Supabase server is down
-    console.error('Auth callback caught exception:', error)
+    console.error('❌ Auth callback caught exception:', error)
     return NextResponse.redirect(new URL('/login?error=auth', request.url))
   }
 
   // RESPONSE: Send redirect with session cookie to browser
   // Browser now has the session cookie and will send it with next request
+  console.log('🚀 Redirecting to:', next)
   return response
 }
