@@ -1,6 +1,7 @@
 import { createServerClient as createServerClientSSR } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,19 +45,24 @@ export const dynamic = 'force-dynamic'
  * @see https://supabase.com/docs/guides/auth/server-side/nextjs
  */
 export async function GET(request: NextRequest) {
+  const timer = logger.timer('auth', 'exchangeCodeForSession')
+
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') || '/app/dashboard'
 
+  logger.info('auth', 'Callback initiated', { codePresent: !!code, redirectTo: next })
+
   // VALIDATION: Check if authorization code exists
   // If not present, the link was invalid or expired
   if (!code) {
-    console.warn('[AUTH] Callback invoked without code parameter - link may be expired')
+    logger.warn('auth', 'Callback invoked without code parameter - link may be expired')
     return NextResponse.redirect(new URL('/login?error=no_code', request.url))
   }
 
   // Prepare server cookie storage
   const cookieStore = cookies()
+  logger.debug('auth', 'Cookie store initialized')
 
   // Prepare the response we'll send back to browser
   // Start with redirect to dashboard (or custom next URL)
@@ -94,19 +100,29 @@ export async function GET(request: NextRequest) {
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (exchangeError) {
-      console.error('[AUTH] Exchange failed:', exchangeError.message)
+      logger.error(
+        'auth',
+        'Code exchange failed',
+        new Error(exchangeError.message),
+        {
+          code: (exchangeError as any).code,
+          status: (exchangeError as any).status,
+        }
+      )
       return NextResponse.redirect(new URL('/login?error=auth', request.url))
     }
 
     // If we get here, exchange was successful
     // Session cookie is now set in both response headers and server store
+    logger.info('auth', 'Code successfully exchanged for session', { redirectTo: next })
+    timer.end({ success: true })
   } catch (error) {
     // CODE EXCHANGE FAILED
     // This can happen if:
     // - Code is invalid/expired
     // - Code was already used
     // - Supabase server is down
-    console.error('[AUTH] Unexpected error during exchange:', error instanceof Error ? error.message : 'Unknown')
+    timer.error(error instanceof Error ? error : new Error(String(error)))
     return NextResponse.redirect(new URL('/login?error=auth', request.url))
   }
 

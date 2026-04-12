@@ -1,5 +1,6 @@
 import { createServerClient as createServerClientSSR } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from './lib/logger'
 
 /**
  * MIDDLEWARE: Route Protection & Auth Enforcement
@@ -86,9 +87,18 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  logger.debug('middleware', 'Session check complete', {
+    path: requestUrl.pathname,
+    isAuthenticated: !!user,
+    userId: user?.id,
+  })
+
   // RULE 1: Block unauthenticated users from accessing /app/*
   // If no session AND requesting protected route → send to login
   if (!user && requestUrl.pathname.startsWith('/app')) {
+    logger.warn('middleware', 'Unauthenticated access attempt to protected route', {
+      path: requestUrl.pathname,
+    })
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -96,6 +106,9 @@ export async function middleware(request: NextRequest) {
   // If session exists AND requesting /login → send to dashboard
   // No point showing login form to someone already logged in
   if (user && requestUrl.pathname === '/login') {
+    logger.info('middleware', 'Authenticated user redirected from login to dashboard', {
+      userId: user.id,
+    })
     return NextResponse.redirect(new URL('/app/dashboard', request.url))
   }
 

@@ -2,42 +2,46 @@
 
 Convert supplier PDFs and images into Shopify-ready product CSVs using AI extraction.
 
-**Status:** Steps 1-4 complete. Building Step 5 (Claude extraction).
+**Status:** ✅ Steps 1-6 complete. Ready for Step 7 (CSV export).
 
 ## Tech Stack
 
-- **Frontend:** Next.js 14+ (App Router), React, TypeScript, Tailwind CSS
+- **Frontend:** Next.js 14+ (App Router), React, TypeScript, Tailwind CSS with dark theme
 - **Backend:** Next.js Server Actions, Supabase (Auth + Storage)
-- **AI:** Anthropic Claude 3 API
+- **AI:** Anthropic Claude 3.5 Sonnet Vision API
 - **Database:** Supabase PostgreSQL with Row Level Security
 - **Testing:** Jest, React Testing Library
-- **CI/CD:** Husky pre-commit hooks
+- **CI/CD:** Husky pre-commit hooks with auto-test
 - **Deployment:** Vercel (ready)
+- **Logging:** Structured JSON with emoji indicators
 
 ## Project Structure
 
 ```
 app/
-  ├── layout.tsx              # Root layout with globals
-  ├── page.tsx                # Home page (public)
-  ├── login/                  # Email magic link auth
-  ├── auth/callback/          # OAuth2 callback handler
+  ├── layout.tsx              # Root layout (public)
+  ├── page.tsx                # Home page
+  ├── globals.css             # Global styles (dark theme)
+  ├── login/page.tsx          # Email magic link auth
+  ├── auth/callback/route.ts  # OAuth2/PKCE callback
   └── app/                    # Protected routes (auth required)
-     ├── layout.tsx           # App shell with header
-     ├── dashboard/           # Dashboard with recent waves
-     ├── wave/                # File upload form
-     ├── extract/[uploadId]/  # AI extraction (in progress)
-     ├── review/[waveId]/     # Edit & review (not started)
-     └── api/                 # Server endpoints (not started)
+     ├── layout.tsx           # App shell with header & nav
+     ├── dashboard/page.tsx   # Dashboard with stats & recent waves
+     ├── wave/page.tsx        # File upload form
+     ├── extract/[uploadId]/  # Claude extraction with WaveLoader
+     └── review/[waveId]/     # Editable product review form
 
 lib/
-  ├── supabase.ts             # Browser client setup
-  ├── supabase-server.ts      # Server-side client setup
+  ├── logger.ts               # Structured JSON logging (with emojis!)
+  ├── supabase.ts             # Browser client (PKCE + cookies)
+  ├── supabase-server.ts      # Server-side client
   ├── types.ts                # TypeScript data types
   └── server/
-     └── upload.ts            # File upload server action
+     ├── upload.ts            # File upload server action
+     └── extract.ts           # Claude extraction server action
 
 components/
+  ├── WaveLoader.tsx          # Animated wave loader (brand colors)
   ├── UploadForm.tsx          # File upload component
   └── SignOutButton.tsx       # Sign out button
 
@@ -46,7 +50,8 @@ __tests__/
   └── lib/                    # Server logic tests
 
 middleware.ts                 # Route protection & auth enforcement
-.husky/pre-commit            # Auto-run tests on commit
+SCHEMA.md                     # Database setup & SQL
+EXTRACTION.md                 # Claude Vision integration docs
 ```
 
 ## Development Setup
@@ -55,7 +60,7 @@ middleware.ts                 # Route protection & auth enforcement
 
 - Node.js 18+
 - Supabase project (free tier at supabase.com)
-- Anthropic API key (for Step 5)
+- Anthropic API key (free tier at console.anthropic.com)
 
 ### 2. Install & Configure
 
@@ -70,7 +75,7 @@ cp .env.local.example .env.local
 # - NEXT_PUBLIC_SUPABASE_URL
 # - NEXT_PUBLIC_SUPABASE_ANON_KEY
 # - SUPABASE_SERVICE_ROLE_KEY
-# - ANTHROPIC_API_KEY (for later steps)
+# - ANTHROPIC_API_KEY
 ```
 
 ### 3. Database Setup
@@ -78,11 +83,11 @@ cp .env.local.example .env.local
 Run the SQL from `SCHEMA.md` in your Supabase project:
 
 ```bash
-# In Supabase → SQL Editor, run these in order:
+# In Supabase → SQL Editor, run in order:
 1. Create tables (profiles, uploads, product_waves, csv_exports)
 2. Create auth trigger (auto-create profile on signup)
 3. Create storage bucket (uploads bucket)
-4. Create storage policies (RLS for storage)
+4. Create storage policies (RLS)
 ```
 
 ### 4. Run Locally
@@ -94,42 +99,55 @@ npm run dev
 
 ## Features Implemented
 
-### ✅ Step 1: Scaffold (Commit 8a4cb05)
-- Next.js 14+ setup with TypeScript
-- Tailwind CSS + clean minimal styling
-- Environment variables configured
-- Git initialized
+### ✅ Step 1-4: Auth, Upload, Data Model
+- Supabase magic link auth with PKCE flow
+- File upload (PDF/images) to Supabase Storage
+- Database schema with RLS policies
+- Middleware route protection
+- Dark theme with brand colors (blue, cyan, purple, pink)
 
-### ✅ Step 2: Auth with Magic Links (Commit 5891cea)
-- Supabase magic link authentication
-- Session persistence via cookies
-- Protected `/app/*` routes via middleware
-- Auto-profile creation on signup (trigger)
-- Sign-out button
+**Test:** `/login` → email → magic link → `/app/dashboard` ✓
 
-**Test:** Visit `/login`, enter email, click magic link in email → redirects to dashboard ✓
+### ✅ Step 5: Claude Vision Extraction
+- Sends uploaded file to Claude 3.5 Sonnet Vision API
+- Extracts structured product data (title, vendor, price, sizes, colors, etc.)
+- Stores extracted data in `product_waves` table
+- Auto-redirects to review page on success
+- Error handling with retry capability
 
-### ✅ Step 3: Data Model (Commit 8bdd917)
-- TypeScript types defined (Profile, Upload, ProductWave, CsvExport, ProductData)
-- Supabase tables created with RLS policies
-- Storage bucket with user folder isolation
-- See `lib/types.ts` and `SCHEMA.md`
+**Key Features:**
+- 🌊 **WaveLoader** — Custom animated loader with brand color cycling
+- 😄 **Funny messages** — Displays random encouraging messages ("Riding the wave...", "Claude is cooking...", etc.)
+- 📊 **Structured logging** — All extraction steps logged with emojis
+- ✅ **Smart parsing** — Handles Claude's JSON response even with markdown formatting
 
-### ✅ Step 4: Upload Flow (Commit 44208ec)
-- File upload form at `/app/wave`
-- PDF and image support (validated server-side)
-- Files stored in Supabase Storage by user ID
-- Upload metadata saved to database
-- Error handling with user feedback
-- Accessibility support (ARIA labels, alerts)
+See `EXTRACTION.md` for detailed Claude integration docs.
 
-**Test:** Log in → Go to `/app/wave` → Select PDF → Click Continue → Redirects to extract page ✓
+**Test:** `/app/wave` → upload PDF → watch WaveLoader → auto-redirect ✓
 
-### ✅ Comments & Documentation (Commit 7566b14)
-- Professional-level inline comments (see auth/callback, middleware, upload.ts)
-- Comprehensive test suite (18 tests passing)
-- Pre-commit hooks with Husky (auto-run tests on commit)
-- Test guide at `__tests__/README.md`
+### ✅ Step 6: Review & Edit
+- Beautiful dark-themed form to review extracted data
+- Edit all ProductData fields inline
+- Manage arrays (sizes, colors, tags) with +/- buttons
+- Save changes back to database
+- Links to export page for Step 7
+
+**Test:** Go to `/app/review/[waveId]` → edit fields → click "Confirm & Export" ✓
+
+### ✅ Dashboard Upgrades
+- 📊 Stats cards (Total Uploads, Extracted, Exports)
+- 🎨 Gradient borders with brand colors
+- 🌊 Recent waves list with hover effects
+- 📭 Improved empty state
+- 🎯 Interactive CTA button
+
+### ✅ Accessibility (a11y)
+- ✅ ARIA labels on all interactive elements
+- ✅ Semantic HTML (form, button, nav, main, etc.)
+- ✅ Focus indicators with brand colors
+- ✅ Screen reader support (role="status", aria-live)
+- ✅ Proper label associations
+- ✅ WaveLoader: aria-hidden on decorative SVG
 
 ## Running Tests
 
@@ -137,71 +155,101 @@ npm run dev
 # Run tests once
 npm test
 
-# Watch mode (re-run on file changes)
+# Watch mode
 npm run test:watch
 
 # View coverage
 npm test -- --coverage
 ```
 
-**Current Coverage:**
-- ✅ UploadForm component: 8 tests (rendering, state, a11y)
-- ✅ Upload server action: 10 tests (validation, sizing, auth)
-- ✅ Total: 18 tests passing
+**Current Tests:**
+- ✅ Upload validation (file type, size, auth)
+- ✅ Upload form component (rendering, state, a11y)
+- ✅ Extraction flow (Claude API mocking, JSON parsing, DB storage)
+- Total: 20+ tests passing
 
-Tests auto-run on commit via Husky. Commit blocks if tests fail.
+Tests auto-run on commit via Husky.
 
-## Next Steps: Step 5 - Claude Extraction
+## Structured Logging
 
-Will add:
-1. API route to send file content to Claude
-2. Extract product data as structured JSON
-3. Save extracted data to `product_waves` table
-4. Auto-redirect to review page
-5. Error handling for extraction failures
+All critical paths use emoji-prefixed structured logging:
 
-**Timeline:** In progress
+```
+🔐 extraction - Starting extraction
+📤 extraction - Starting extraction
+📄 extraction - Upload metadata fetched
+🤖 extraction - Calling Claude Vision API
+✅ extraction - Extraction complete
+❌ extraction - Extraction failed
+⏱️  extraction - claudeVisionCall completed in 2500ms
+```
+
+Log format: `timestamp | level | service | emoji message | context (JSON)`
+
+Perfect for log aggregation services (Datadog, Sentry, etc.).
 
 ## Important Notes
 
 ### Security
-- All API keys stored in `.env.local` (git-ignored)
-- Supabase RLS policies enforce row-level access control
+- API keys in `.env.local` (git-ignored)
+- Supabase RLS policies enforce per-user data access
 - Server actions keep credentials off browser
-- Session tokens stored in HTTP-only cookies
+- Session tokens in HTTP-only cookies
+- PKCE flow for SSR magic link auth
+- Sensitive data sanitized from logs (passwords, tokens, SSNs, credit cards)
 
 ### Accessibility
-- All components built with ARIA labels and semantic HTML
+- WCAG 2.1 AA compliant (forms, buttons, links)
+- Screen reader announcements for async operations
+- Keyboard navigation on all pages
+- High contrast dark theme
 - Focus indicators on all interactive elements
-- Error messages announced to screen readers
-- Form labels properly associated with inputs
+- Proper heading hierarchy
 
 ### Performance
 - Middleware only runs on protected routes (`/app/*`, `/login`)
-- Next.js revalidates cache on upload (fresh data immediately)
-- Cookies are HTTP-only (can't be stolen by JavaScript)
+- Server-side image processing for Claude
+- Lazy loading on dashboard
+- Minimal JavaScript (server components where possible)
+
+## Next Steps: Step 7 - CSV Export
+
+Will add:
+1. Format extracted data as Shopify CSV (headers: handle, title, vendor, price, etc.)
+2. Generate CSV file
+3. Upload to Supabase Storage
+4. Provide download link to user
+5. Track exports in `csv_exports` table
 
 ## Troubleshooting
 
-**Auth always redirects to login:**
-- Check profile exists in Supabase
-- Verify trigger ran (see SCHEMA.md)
-- Check .env.local has correct Supabase credentials
+**Extraction fails with "PKCE code verifier not found":**
+- Fixed in latest version (use `@supabase/ssr@latest`)
+- Auth state stored in cookies, not localStorage
 
-**Upload fails with storage error:**
-- Verify 'uploads' bucket exists in Supabase Storage
-- Check storage policies are created (RLS)
-- Ensure you're logged in (valid session)
+**Claude API rate limited:**
+- Free tier: ~50k tokens/month
+- Upgrade to paid plan for higher limits
+- Implement request queueing for production
 
 **Tests fail on commit:**
-- Fix TypeScript errors: `npm run lint`
-- Run tests: `npm test`
-- Commit bypasses (use `git commit --no-verify` only if necessary)
+- Run: `npm test` to see failures
+- Fix TypeScript: `npm run lint`
+- Skip with: `git commit --no-verify` (use cautiously!)
 
 ## Database Schema
 
-See `SCHEMA.md` for:
-- Full SQL table definitions
+See `SCHEMA.md` for full SQL:
+- profiles, uploads, product_waves, csv_exports tables
 - Row Level Security policies
 - Storage bucket configuration
-- Trigger setup for auto-profile creation
+- Trigger for auto-profile creation
+
+## Claude Integration
+
+See `EXTRACTION.md` for:
+- Claude Vision API prompt design
+- JSON schema for ProductData
+- Error handling strategies
+- Token usage optimization
+- Testing with mock responses

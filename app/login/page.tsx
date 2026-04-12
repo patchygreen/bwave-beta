@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
+import { logger } from '@/lib/logger'
 
 // Beta whitelist: Only these emails can access the MVP
 const ALLOWED_EMAILS = [
@@ -22,15 +23,20 @@ export default function LoginPage() {
     setError(null)
     setMessage(null)
 
-    // Check if email is on the beta whitelist
     const normalizedEmail = email.toLowerCase().trim()
+
+    // Check if email is on the beta whitelist
     if (!ALLOWED_EMAILS.includes(normalizedEmail)) {
-      setError('Email not authorized for beta access. Contact the team to request access.')
+      const errorMsg = 'Email not authorized for beta access. Contact the team to request access.'
+      logger.warn('auth', 'Unauthorized login attempt', { email: normalizedEmail })
+      setError(errorMsg)
       setLoading(false)
       return
     }
 
     try {
+      logger.info('auth', 'Magic link requested', { email: normalizedEmail })
+
       const supabase = createClient()
 
       const { error } = await supabase.auth.signInWithOtp({
@@ -41,12 +47,17 @@ export default function LoginPage() {
       })
 
       if (error) {
+        logger.error('auth', 'Magic link request failed', new Error(error.message), {
+          email: normalizedEmail,
+        })
         setError(error.message)
       } else {
+        logger.info('auth', 'Magic link sent successfully', { email: normalizedEmail })
         setMessage('Check your email for the magic link!')
         setEmail('')
       }
     } catch (err) {
+      logger.error('auth', 'Unexpected error during signin', err instanceof Error ? err : new Error(String(err)))
       setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
