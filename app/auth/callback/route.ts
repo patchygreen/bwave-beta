@@ -44,25 +44,19 @@ export const dynamic = 'force-dynamic'
  * @see https://supabase.com/docs/guides/auth/server-side/nextjs
  */
 export async function GET(request: NextRequest) {
-  console.log('🔐 Auth callback START')
-
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') || '/app/dashboard'
 
-  console.log('📍 Code present:', !!code)
-  console.log('📍 Redirect to:', next)
-
   // VALIDATION: Check if authorization code exists
   // If not present, the link was invalid or expired
   if (!code) {
-    console.warn('❌ Auth callback called without code parameter - invalid or expired link')
+    console.warn('[AUTH] Callback invoked without code parameter - link may be expired')
     return NextResponse.redirect(new URL('/login?error=no_code', request.url))
   }
 
   // Prepare server cookie storage
   const cookieStore = cookies()
-  console.log('📍 Cookie store ready')
 
   // Prepare the response we'll send back to browser
   // Start with redirect to dashboard (or custom next URL)

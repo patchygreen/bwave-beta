@@ -3,11 +3,11 @@
 @tailwind utilities;
 
 * {
-  @apply border-slate-200;
+  @apply border-slate-700;
 }
 
 html {
-  @apply bg-slate-50 text-slate-900;
+  @apply bg-black text-white;
 }
 
 body {

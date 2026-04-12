@@ -1,6 +1,6 @@
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
+    <main className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="max-w-md text-center">
         {/* Logo */}
         <div className="mb-8 flex justify-center">
@@ -8,14 +8,14 @@ export default function Home() {
         </div>
 
         {/* Tagline */}
-        <p className="text-lg text-slate-600 mb-8">
+        <p className="text-lg text-slate-400 mb-8">
           Turn supplier PDFs into Shopify-ready CSVs
         </p>
 
-        {/* CTA Button - using brand blue */}
+        {/* CTA Button - using brand blue with glow effect */}
         <a
           href="/login"
-          className="inline-block bg-bwave-blue text-white px-8 py-3 rounded-lg font-medium hover:bg-bwave-purple transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bwave-blue shadow-lg hover:shadow-xl"
+          className="inline-block bg-bwave-blue text-white px-8 py-3 rounded-lg font-medium hover:bg-bwave-purple hover:shadow-lg hover:shadow-bwave-blue/50 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-bwave-blue shadow-lg"
         >
           Get started
         </a>

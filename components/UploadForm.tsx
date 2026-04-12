@@ -47,7 +47,7 @@ export default function UploadForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* File Input */}
-      <div className="border-2 border-dashed border-bwave-blue/30 rounded-lg p-8 text-center hover:border-bwave-blue/50 transition-colors focus-within:ring-2 focus-within:ring-bwave-blue focus-within:ring-offset-2 bg-gradient-to-br from-bwave-blue/5 to-bwave-cyan/5">
+      <div className="border-2 border-dashed border-bwave-blue/40 rounded-lg p-8 text-center hover:border-bwave-blue/60 transition-colors focus-within:ring-2 focus-within:ring-bwave-blue focus-within:ring-offset-2 focus-within:ring-offset-black bg-gradient-to-br from-bwave-blue/10 to-bwave-cyan/10">
         <input
           ref={fileInputRef}
           type="file"
@@ -62,10 +62,10 @@ export default function UploadForm() {
 
         <label htmlFor="file-input" className="cursor-pointer block">
           <div className="text-4xl mb-2" aria-hidden="true">📄</div>
-          <p className="text-slate-900 font-medium mb-1">
+          <p className="text-white font-medium mb-1">
             {fileName ? `Selected: ${fileName}` : 'Click to upload or drag and drop'}
           </p>
-          <p id="file-description" className="text-sm text-slate-600">
+          <p id="file-description" className="text-sm text-slate-400">
             PDF or image (PNG, JPG, WebP)
           </p>
           <p className="text-xs text-slate-500 mt-2">Max 10MB</p>
@@ -76,18 +76,18 @@ export default function UploadForm() {
       {error && (
         <div
           role="alert"
-          className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800"
+          className="p-3 bg-red-900/30 border border-red-600 rounded-lg text-sm text-red-300"
         >
           {error}
         </div>
       )}
 
-      {/* Submit Button - using brand blue with hover to cyan */}
+      {/* Submit Button - using brand blue with glow effect */}
       <button
         type="submit"
         disabled={loading || !fileName}
         aria-busy={loading}
-        className="w-full bg-bwave-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-bwave-cyan disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md hover:shadow-lg"
+        className="w-full bg-bwave-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-bwave-cyan hover:shadow-lg hover:shadow-bwave-blue/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
       >
         {loading ? 'Uploading...' : 'Continue'}
       </button>
