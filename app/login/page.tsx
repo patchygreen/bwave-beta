@@ -3,6 +3,13 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 
+// Beta whitelist: Only these emails can access the MVP
+const ALLOWED_EMAILS = [
+  'patrick.crean@zalando.ie',
+  'patrick@b-wave.io',
+  'catherine@b-wave.io',
+]
+
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,11 +22,19 @@ export default function LoginPage() {
     setError(null)
     setMessage(null)
 
+    // Check if email is on the beta whitelist
+    const normalizedEmail = email.toLowerCase().trim()
+    if (!ALLOWED_EMAILS.includes(normalizedEmail)) {
+      setError('Email not authorized for beta access. Contact the team to request access.')
+      setLoading(false)
+      return
+    }
+
     try {
       const supabase = createClient()
 
       const { error } = await supabase.auth.signInWithOtp({
-        email,
+        email: normalizedEmail,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
