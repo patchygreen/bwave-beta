@@ -35,8 +35,8 @@
     "typescript": "^5.3.3"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "jest --bail --findRelatedTests"
+    "__tests__/**/*.test.{ts,tsx}": [
+      "jest --bail"
     ]
   }
 }

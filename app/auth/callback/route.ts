@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Prepare server cookie storage
-  const cookieStore = await cookies()
+  const cookieStore = cookies()
 
   // Prepare the response we'll send back to browser
   // Start with redirect to dashboard (or custom next URL)
@@ -74,13 +74,13 @@ export async function GET(request: NextRequest) {
           return cookieStore.getAll()
         },
         // WRITE cookies to BOTH locations
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: Array<{ name: string; value: string; options?: unknown }>) {
           cookiesToSet.forEach(({ name, value, options }) => {
             // 1. Store in server-side cookie store (so server can read it)
-            cookieStore.set(name, value, options)
+            cookieStore.set(name, value, options as any)
             // 2. Add to response headers (so browser receives it and stores it)
             // This is CRITICAL - without this, browser never gets the session
-            response.cookies.set(name, value, options)
+            response.cookies.set(name, value, options as any)
           })
         },
       },
@@ -91,7 +91,12 @@ export async function GET(request: NextRequest) {
     // EXCHANGE: Trade temporary code for permanent session token
     // Supabase validates the code and returns a session object
     // Our cookie handlers automatically store the session token
-    await supabase.auth.exchangeCodeForSession(code)
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (exchangeError) {
+      console.error('Auth exchange error:', exchangeError)
+      return NextResponse.redirect(new URL('/login?error=auth', request.url))
+    }
 
     // If we get here, exchange was successful
     // Session cookie is now set in both response headers and server store
@@ -102,7 +107,7 @@ export async function GET(request: NextRequest) {
     // - Code is invalid/expired
     // - Code was already used
     // - Supabase server is down
-    console.error('Auth callback exchange failed:', error)
+    console.error('Auth callback caught exception:', error)
     return NextResponse.redirect(new URL('/login?error=auth', request.url))
   }
 
