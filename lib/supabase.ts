@@ -27,7 +27,10 @@ const cookieStorage = {
   },
   setItem: (key: string, value: string) => {
     if (typeof document === 'undefined') return
-    document.cookie = `${key}=${encodeURIComponent(value)}; path=/; SameSite=Lax; secure`
+    // Don't use secure flag on localhost (HTTP) - it will reject the cookie
+    const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    const secureFlag = isLocalhost ? '' : '; secure'
+    document.cookie = `${key}=${encodeURIComponent(value)}; path=/; SameSite=Lax${secureFlag}`
   },
   removeItem: (key: string) => {
     if (typeof document === 'undefined') return
