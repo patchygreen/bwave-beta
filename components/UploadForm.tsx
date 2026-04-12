@@ -47,7 +47,7 @@ export default function UploadForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* File Input */}
-      <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-slate-400 transition-colors">
+      <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-slate-400 transition-colors focus-within:ring-2 focus-within:ring-slate-900 focus-within:ring-offset-2">
         <input
           ref={fileInputRef}
           type="file"
@@ -56,21 +56,28 @@ export default function UploadForm() {
           disabled={loading}
           className="hidden"
           id="file-input"
+          aria-label="Upload product file"
+          aria-describedby="file-description"
         />
 
-        <label htmlFor="file-input" className="cursor-pointer">
-          <div className="text-4xl mb-2">📄</div>
+        <label htmlFor="file-input" className="cursor-pointer block">
+          <div className="text-4xl mb-2" aria-hidden="true">📄</div>
           <p className="text-slate-900 font-medium mb-1">
             {fileName ? `Selected: ${fileName}` : 'Click to upload or drag and drop'}
           </p>
-          <p className="text-sm text-slate-600">PDF or image (PNG, JPG, WebP)</p>
+          <p id="file-description" className="text-sm text-slate-600">
+            PDF or image (PNG, JPG, WebP)
+          </p>
           <p className="text-xs text-slate-500 mt-2">Max 10MB</p>
         </label>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+        <div
+          role="alert"
+          className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800"
+        >
           {error}
         </div>
       )}
@@ -79,6 +86,7 @@ export default function UploadForm() {
       <button
         type="submit"
         disabled={loading || !fileName}
+        aria-busy={loading}
         className="w-full bg-slate-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? 'Uploading...' : 'Continue'}

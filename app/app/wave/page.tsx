@@ -17,14 +17,14 @@ export default function WavePage() {
       </div>
 
       <div className="mt-8 space-y-4 text-sm text-slate-600">
-        <div>
-          <h3 className="font-medium text-slate-900 mb-1">Supported formats</h3>
+        <section>
+          <h2 className="font-medium text-slate-900 mb-1 text-base">Supported formats</h2>
           <p>PDF documents, PNG, JPG, WebP images</p>
-        </div>
-        <div>
-          <h3 className="font-medium text-slate-900 mb-1">What happens next</h3>
+        </section>
+        <section>
+          <h2 className="font-medium text-slate-900 mb-1 text-base">What happens next</h2>
           <p>We'll extract product information using AI and show you a review screen where you can edit before exporting</p>
-        </div>
+        </section>
       </div>
     </div>
   )

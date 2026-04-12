@@ -25,7 +25,8 @@ export default function SignOutButton() {
     <button
       onClick={handleSignOut}
       disabled={loading}
-      className="text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50"
+      aria-busy={loading}
+      className="text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 rounded px-2 py-1"
     >
       {loading ? 'Signing out...' : 'Sign out'}
     </button>

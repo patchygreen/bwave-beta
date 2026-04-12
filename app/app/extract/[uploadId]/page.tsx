@@ -41,8 +41,10 @@ export default async function ExtractPage({
 
       <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
         <div className="inline-block">
-          <div className="animate-spin text-4xl mb-4">⏳</div>
-          <p className="text-slate-600 mb-2">Processing your file...</p>
+          <div className="animate-spin text-4xl mb-4" aria-hidden="true">⏳</div>
+          <p className="text-slate-600 mb-2" role="status" aria-live="polite">
+            Processing your file...
+          </p>
           <p className="text-sm text-slate-500">
             We're analyzing the content using AI
           </p>
@@ -50,7 +52,7 @@ export default async function ExtractPage({
       </div>
 
       <p className="mt-6 text-xs text-slate-500 text-center">
-        Upload ID: {params.uploadId}
+        Upload ID: <span className="font-mono">{params.uploadId}</span>
       </p>
     </div>
   )

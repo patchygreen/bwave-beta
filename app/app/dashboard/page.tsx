@@ -34,36 +34,39 @@ export default async function DashboardPage() {
           </div>
           <a
             href="/app/wave"
-            className="inline-block text-slate-900 hover:text-slate-700 font-medium text-sm"
+            className="inline-block text-slate-900 hover:text-slate-700 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 rounded px-2 py-1"
           >
             Get started →
           </a>
         </div>
 
         {/* Recent Waves */}
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
+        <section className="bg-white rounded-lg border border-slate-200 p-6">
           <h2 className="text-xl font-medium text-slate-900 mb-4">Recent waves</h2>
           {recentWaves && recentWaves.length > 0 ? (
-            <div className="space-y-2">
-              {recentWaves.map((wave) => (
-                <a
-                  key={wave.id}
-                  href={`/app/review/${wave.id}`}
-                  className="block p-2 rounded hover:bg-slate-50 text-sm"
-                >
-                  <p className="text-slate-900 font-medium">
-                    {wave.extracted_data?.title || 'Untitled'}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {new Date(wave.created_at).toLocaleDateString()}
-                  </p>
-                </a>
-              ))}
-            </div>
+            <nav aria-label="Recent waves">
+              <ul className="space-y-2">
+                {recentWaves.map((wave) => (
+                  <li key={wave.id}>
+                    <a
+                      href={`/app/review/${wave.id}`}
+                      className="block p-2 rounded hover:bg-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2"
+                    >
+                      <p className="text-slate-900 font-medium">
+                        {wave.extracted_data?.title || 'Untitled'}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {new Date(wave.created_at).toLocaleDateString()}
+                      </p>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           ) : (
             <p className="text-slate-600 text-sm">No waves yet. Create your first one!</p>
           )}
-        </div>
+        </section>
       </div>
     </div>
   )
