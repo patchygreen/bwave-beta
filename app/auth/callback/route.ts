@@ -88,35 +88,29 @@ export async function GET(request: NextRequest) {
   )
 
   try {
-    console.log('🔄 Exchanging code for session...')
-
     // EXCHANGE: Trade temporary code for permanent session token
     // Supabase validates the code and returns a session object
     // Our cookie handlers automatically store the session token
-    const { error: exchangeError, data } = await supabase.auth.exchangeCodeForSession(code)
-
-    console.log('📍 Exchange complete. Error:', exchangeError, 'Data:', !!data)
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (exchangeError) {
-      console.error('❌ Auth exchange error:', JSON.stringify(exchangeError))
+      console.error('[AUTH] Exchange failed:', exchangeError.message)
       return NextResponse.redirect(new URL('/login?error=auth', request.url))
     }
 
     // If we get here, exchange was successful
     // Session cookie is now set in both response headers and server store
-    console.log('✅ Auth successful: Code exchanged for session')
   } catch (error) {
     // CODE EXCHANGE FAILED
     // This can happen if:
     // - Code is invalid/expired
     // - Code was already used
     // - Supabase server is down
-    console.error('❌ Auth callback caught exception:', error)
+    console.error('[AUTH] Unexpected error during exchange:', error instanceof Error ? error.message : 'Unknown')
     return NextResponse.redirect(new URL('/login?error=auth', request.url))
   }
 
   // RESPONSE: Send redirect with session cookie to browser
   // Browser now has the session cookie and will send it with next request
-  console.log('🚀 Redirecting to:', next)
   return response
 }
