@@ -398,6 +398,5 @@ const response = await client.messages.create({
 ## References
 
 - Claude API docs: https://docs.anthropic.com/
-- Vision capabilities: https://docs.anthropic.com/vision/vision-intro
 - Model comparison: https://docs.anthropic.com/about/models/overview
 - Pricing: https://www.anthropic.com/pricing/claude

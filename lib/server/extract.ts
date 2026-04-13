@@ -235,6 +235,16 @@ Rules:
       return { success: false, error: 'Failed to parse extraction results' }
     }
 
+    // Check if extracted data is empty (no useful fields)
+    const hasData = Object.values(extractedData).some((val) => val && val !== '' && !Array.isArray(val) ? true : Array.isArray(val) && val.length > 0)
+    if (!hasData) {
+      logger.warn('⚠️ extraction', 'No product data could be extracted from file', { uploadId, extractedData })
+      return {
+        success: false,
+        error: 'Could not extract product information from this file. Make sure it contains product details like title, description, price, or images.',
+      }
+    }
+
     // 6. INSERT INTO product_waves TABLE
     const { data: waveData, error: insertError } = await supabase
       .from('product_waves')
