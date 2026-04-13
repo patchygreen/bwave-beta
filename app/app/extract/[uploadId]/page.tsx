@@ -62,7 +62,6 @@ export default function ExtractPage({ params }: { params: Promise<{ uploadId: st
             <div className="mb-6">
               <WaveLoader />
             </div>
-            <p className="text-slate-400 text-center">Claude is cooking your data...</p>
             <p className="text-sm text-slate-500 text-center mt-2">This usually takes 10-30 seconds</p>
           </div>
         ) : (
