@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 import type { ProductData, ProductWave } from '@/lib/types'
 
-export default function ReviewPage({ params }: { params: { waveId: string } }) {
+export default function ReviewPage({ params }: { params: Promise<{ waveId: string }> }) {
   const router = useRouter()
+  const { waveId } = use(params)
   const [wave, setWave] = useState<ProductWave | null>(null)
   const [data, setData] = useState<Partial<ProductData> | null>(null)
   const [loading, setLoading] = useState(true)
@@ -28,12 +29,12 @@ export default function ReviewPage({ params }: { params: { waveId: string } }) {
           return
         }
 
-        logger.info('📦 review', 'Fetching wave data', { waveId: params.waveId })
+        logger.info('📦 review', 'Fetching wave data', { waveId })
 
         const { data: waveData, error: waveError } = await supabase
           .from('product_waves')
           .select('*')
-          .eq('id', params.waveId)
+          .eq('id', waveId)
           .eq('profile_id', user.id)
           .single()
 
@@ -45,7 +46,7 @@ export default function ReviewPage({ params }: { params: { waveId: string } }) {
 
         setWave(waveData)
         setData(waveData.extracted_data)
-        logger.info('📦 review', 'Wave loaded successfully', { waveId: params.waveId })
+        logger.info('📦 review', 'Wave loaded successfully', { waveId })
       } catch (err) {
         logger.error('📦 review', 'Error fetching wave', err instanceof Error ? err : new Error(String(err)))
         setError('Failed to load data')
@@ -55,7 +56,7 @@ export default function ReviewPage({ params }: { params: { waveId: string } }) {
     }
 
     fetchWave()
-  }, [params.waveId, router])
+  }, [waveId, router])
 
   const handleFieldChange = (field: keyof ProductData, value: any) => {
     setData((prev) => (prev ? { ...prev, [field]: value } : null))
@@ -93,14 +94,14 @@ export default function ReviewPage({ params }: { params: { waveId: string } }) {
 
     setSaving(true)
     try {
-      logger.info('💾 review', 'Saving extracted data', { waveId: params.waveId })
+      logger.info('💾 review', 'Saving extracted data', { waveId: waveId })
 
       const supabase = createClient()
 
       const { error: updateError } = await supabase
         .from('product_waves')
         .update({ extracted_data: data })
-        .eq('id', params.waveId)
+        .eq('id', waveId)
 
       if (updateError) {
         logger.error('💾 review', 'Failed to save', new Error(updateError.message))
@@ -108,9 +109,9 @@ export default function ReviewPage({ params }: { params: { waveId: string } }) {
         return
       }
 
-      logger.info('✅ review', 'Data saved successfully, redirecting to export', { waveId: params.waveId })
+      logger.info('✅ review', 'Data saved successfully, redirecting to export', { waveId: waveId })
       // TODO: Redirect to export page once built
-      router.push(`/app/export/${params.waveId}`)
+      router.push(`/app/export/${waveId}`)
     } catch (err) {
       logger.error('💾 review', 'Error saving', err instanceof Error ? err : new Error(String(err)))
       setError('Failed to save changes')

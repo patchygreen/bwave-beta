@@ -1,40 +1,41 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { extractProducts } from '@/lib/server/extract'
 import { logger } from '@/lib/logger'
 import WaveLoader from '@/components/WaveLoader'
 
-export default function ExtractPage({ params }: { params: { uploadId: string } }) {
+export default function ExtractPage({ params }: { params: Promise<{ uploadId: string }> }) {
   const router = useRouter()
+  const { uploadId } = use(params)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(true)
 
   useEffect(() => {
     const runExtraction = async () => {
       try {
-        logger.info('🚀 extraction', 'Extract page mounted, starting extraction', { uploadId: params.uploadId })
+        logger.info('🚀 extraction', 'Extract page mounted, starting extraction', { uploadId })
 
-        const result = await extractProducts(params.uploadId)
+        const result = await extractProducts(uploadId)
 
         if (result.success && result.waveId) {
           logger.info('✅ extraction', 'Extraction successful, redirecting to review', {
-            uploadId: params.uploadId,
+            uploadId,
             waveId: result.waveId,
           })
           // Auto-redirect to review page
           router.push(`/app/review/${result.waveId}`)
         } else {
           const errorMsg = result.error || 'Failed to extract data'
-          logger.error('❌ extraction', 'Extraction failed', new Error(errorMsg), { uploadId: params.uploadId })
+          logger.error('❌ extraction', 'Extraction failed', new Error(errorMsg), { uploadId })
           setError(errorMsg)
           setIsProcessing(false)
         }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'An unexpected error occurred'
         logger.error('❌ extraction', 'Extraction error', err instanceof Error ? err : new Error(String(err)), {
-          uploadId: params.uploadId,
+          uploadId,
         })
         setError(errorMsg)
         setIsProcessing(false)
@@ -42,13 +43,13 @@ export default function ExtractPage({ params }: { params: { uploadId: string } }
     }
 
     runExtraction()
-  }, [params.uploadId, router])
+  }, [uploadId, router])
 
   return (
     <div className="max-w-2xl">
       <div className="mb-8">
         <h1 className="text-3xl font-light tracking-tight text-white mb-2">Extracting product data</h1>
-        <p className="text-slate-400">Upload ID: {params.uploadId}</p>
+        <p className="text-slate-400">Upload ID: {uploadId}</p>
       </div>
 
       {isProcessing ? (
