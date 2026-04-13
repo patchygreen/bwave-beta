@@ -1,6 +1,7 @@
 'use server'
 
 import { createServerClient } from '@/lib/supabase-server'
+import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { logger } from '@/lib/logger'
 import type { ProductData } from '@/lib/types'
@@ -32,27 +33,20 @@ export async function exportCSV(waveId: string): Promise<{ success: boolean; url
   const timer = logger.timer('📊 export', 'exportCSV')
 
   try {
-    console.log('\n📊 ═══════════════════════════════════════════════════════════════')
-    console.log('📊 CSV EXPORT START')
-    console.log('📊 ═══════════════════════════════════════════════════════════════')
-
-    // 1. AUTHENTICATE
-    console.log('📋 Step 1: Authenticate user')
+    // 1. Authenticate user
     const supabase = await createServerClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
 
     if (!user) {
-      console.error('❌ Not authenticated')
+      logger.warn('📊 export', 'Unauthorized export attempt', new Error('No user session'), { waveId })
       return { success: false, error: 'Not authenticated' }
     }
 
-    console.log('✅ User authenticated:', user.id)
     logger.info('📊 export', 'Export started', { waveId, userId: user.id })
 
-    // 2. FETCH PRODUCT DATA
-    console.log('📋 Step 2: Fetch product data from database')
+    // 2. Fetch product data from database
     const { data: wave, error: waveError } = await supabase
       .from('product_waves')
       .select('*')
@@ -61,51 +55,41 @@ export async function exportCSV(waveId: string): Promise<{ success: boolean; url
       .single()
 
     if (waveError || !wave) {
-      console.error('❌ Wave not found:', waveError)
       logger.error('📊 export', 'Wave not found', new Error(waveError?.message || 'Unknown error'), { waveId })
       return { success: false, error: 'Product wave not found' }
     }
 
     const productData = wave.extracted_data as ProductData
-    console.log('✅ Product data fetched')
-    console.log('  - title:', productData.title)
-    console.log('  - vendor:', productData.vendor)
-    console.log('  - sizes:', productData.sizes?.length || 0)
-    console.log('  - colors:', productData.colors?.length || 0)
 
-    // 3. GENERATE CSV
-    console.log('📋 Step 3: Generate Shopify CSV')
+    // 3. Generate Shopify CSV
     const csvContent = productDataToShopifyCSV(productData)
-    console.log('✅ CSV generated')
-    console.log('  - rows:', csvContent.split('\n').length)
-    console.log('  - bytes:', csvContent.length)
 
-    // 4. UPLOAD TO STORAGE
-    console.log('📋 Step 4: Upload CSV to storage')
+    // 4. Upload CSV to storage
     const handle = productData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     const fileName = `${handle}-${Date.now()}.csv`
     const filePath = `${user.id}/${fileName}`
 
-    console.log('  - fileName:', fileName)
-    console.log('  - filePath:', filePath)
+    const csvBlob = new Blob([csvContent], { type: 'text/csv' })
 
-    const { error: uploadError } = await supabase.storage
+    // Use service role client to bypass RLS (same as extract.ts for file operations)
+    const serviceRoleClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error: uploadError } = await serviceRoleClient.storage
       .from('csv-exports')
-      .upload(filePath, csvContent, {
+      .upload(filePath, csvBlob, {
         contentType: 'text/csv',
         upsert: false,
       })
 
     if (uploadError) {
-      console.error('❌ Upload failed:', uploadError)
       logger.error('📊 export', 'CSV upload failed', new Error(uploadError.message), { waveId, filePath })
       return { success: false, error: 'Failed to upload CSV' }
     }
 
-    console.log('✅ CSV uploaded to storage')
-
-    // 5. CREATE AUDIT RECORD
-    console.log('📋 Step 5: Create csv_exports record')
+    // 5. Create audit record
     const { data: exportRecord, error: insertError } = await supabase
       .from('csv_exports')
       .insert({
@@ -117,23 +101,18 @@ export async function exportCSV(waveId: string): Promise<{ success: boolean; url
       .single()
 
     if (insertError || !exportRecord) {
-      console.error('❌ Database insert failed:', insertError)
       logger.error('📊 export', 'Failed to create export record', new Error(insertError?.message || 'Unknown error'), {
         waveId,
       })
       return { success: false, error: 'Failed to create export record' }
     }
 
-    console.log('✅ Export record created:', exportRecord.id)
-
-    // 6. CREATE SIGNED URL
-    console.log('📋 Step 6: Create signed download URL')
-    const { data: signedUrlData, error: urlError } = await supabase.storage
+    // 6. Create signed download URL
+    const { data: signedUrlData, error: urlError } = await serviceRoleClient.storage
       .from('csv-exports')
-      .createSignedUrl(filePath, 3600) // 1 hour expiry
+      .createSignedUrl(filePath, 3600)
 
     if (urlError || !signedUrlData?.signedUrl) {
-      console.error('❌ Signed URL creation failed:', urlError)
       logger.error('📊 export', 'Failed to create signed URL', new Error(urlError?.message || 'Unknown error'), {
         waveId,
         filePath,
@@ -141,24 +120,15 @@ export async function exportCSV(waveId: string): Promise<{ success: boolean; url
       return { success: false, error: 'Failed to create download URL' }
     }
 
-    console.log('✅ Signed URL created')
-
-    // 7. REVALIDATE CACHE
-    console.log('📋 Step 7: Revalidate cache')
+    // 7. Revalidate cache
     revalidatePath('/app/dashboard')
     revalidatePath(`/app/review/${waveId}`)
-    console.log('✅ Cache revalidated')
-
-    console.log('📊 ═══════════════════════════════════════════════════════════════')
-    console.log('📊 CSV EXPORT SUCCESS')
-    console.log('📊 ═══════════════════════════════════════════════════════════════\n')
 
     logger.info('📊 export', 'Export complete', { waveId, fileName, recordId: exportRecord.id })
     timer.end({ success: true })
 
     return { success: true, url: signedUrlData.signedUrl }
   } catch (error) {
-    console.error('❌ Unexpected error:', error)
     logger.error('📊 export', 'Unexpected error during export', error instanceof Error ? error : new Error(String(error)), {
       waveId,
     })

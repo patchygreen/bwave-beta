@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { exportCSV } from '@/lib/server/export'
-import { WaveLoader } from '@/components/WaveLoader'
+import WaveLoader from '@/components/WaveLoader'
 
 type ExportState = 'loading' | 'success' | 'error'
 
@@ -16,41 +16,29 @@ export default function ExportPage() {
   const [downloadUrl, setDownloadUrl] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState<string>('')
 
-  useEffect(() => {
-    const performExport = async () => {
-      console.log('🚀 Starting CSV export for waveId:', waveId)
-      setState('loading')
+  const performExport = async () => {
+    console.log('🚀 Starting CSV export for waveId:', waveId)
+    setState('loading')
 
-      const result = await exportCSV(waveId)
+    const result = await exportCSV(waveId)
 
-      if (result.success && result.url) {
-        console.log('✅ Export successful, URL:', result.url)
-        setDownloadUrl(result.url)
-        setState('success')
-      } else {
-        console.error('❌ Export failed:', result.error)
-        setErrorMessage(result.error || 'Failed to generate CSV')
-        setState('error')
-      }
+    if (result.success && result.url) {
+      console.log('✅ Export successful, URL:', result.url)
+      setDownloadUrl(result.url)
+      setState('success')
+    } else {
+      console.error('❌ Export failed:', result.error)
+      setErrorMessage(result.error || 'Failed to generate CSV')
+      setState('error')
     }
+  }
 
+  useEffect(() => {
     performExport()
   }, [waveId])
 
   const handleRetry = () => {
-    setState('loading')
     performExport()
-
-    const performExport = async () => {
-      const result = await exportCSV(waveId)
-      if (result.success && result.url) {
-        setDownloadUrl(result.url)
-        setState('success')
-      } else {
-        setErrorMessage(result.error || 'Failed to generate CSV')
-        setState('error')
-      }
-    }
   }
 
   if (state === 'loading') {
