@@ -418,7 +418,7 @@ describe('extractProducts', () => {
                   type: 'image',
                   source: expect.objectContaining({
                     type: 'base64',
-                    media_type: 'image/jpeg',
+                    media_type: 'image/png',
                     data: expect.any(String),
                   }),
                 }),

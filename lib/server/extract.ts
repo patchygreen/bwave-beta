@@ -146,11 +146,24 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
 
       console.log('✅ Image converted to base64, length:', base64String.length)
 
+      // Determine correct media type from file extension
+      const ext = upload.file_name.toLowerCase().split('.').pop()
+      const mediaTypeMap: Record<string, string> = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+      }
+      const mediaType = mediaTypeMap[ext || ''] || 'image/jpeg'
+      console.log('  - File extension:', ext)
+      console.log('  - Media type:', mediaType)
+
       contentBlock = {
         type: 'image',
         source: {
           type: 'base64',
-          media_type: 'image/jpeg',
+          media_type: mediaType,
           data: base64String,
         },
       }
