@@ -356,8 +356,8 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
         {/* Action Buttons */}
         <div className="flex gap-4 pt-6 border-t border-slate-700">
           <button
-            onClick={() => router.back()}
-            className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+            onClick={() => router.push('/app/wave')}
+            className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900"
           >
             Back
           </button>
