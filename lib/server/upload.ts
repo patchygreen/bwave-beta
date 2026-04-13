@@ -81,107 +81,194 @@ import { revalidatePath } from 'next/cache'
  * }
  */
 export async function uploadFile(formData: FormData) {
+  console.log('\n🚀 ═══════════════════════════════════════════════════════════════')
+  console.log('🚀 UPLOAD FILE START - Full Debug Mode')
+  console.log('🚀 ═══════════════════════════════════════════════════════════════\n')
+
+  // STEP 0: Inspect FormData
+  console.log('📋 Step 0: FormData inspection')
+  console.log('  - FormData keys:', Array.from(formData.keys()))
   const file = formData.get('file') as File
+  console.log('  - file extracted:', file ? 'YES' : 'NO')
 
   // STEP 1: Check file exists
   if (!file) {
+    console.error('❌ Step 1 FAILED: No file in formData')
     return { error: 'No file provided' }
   }
 
+  console.log('✅ Step 1: File exists in FormData')
+  console.log('  - name:', file.name)
+  console.log('  - size:', file.size, 'bytes')
+  console.log('  - type:', file.type)
+  console.log('  - lastModified:', file.lastModified)
+
   // STEP 2: Validate file type
-  // We check MIME type (file.type) not just extension
-  // Extension-only check can be faked: rename .exe to .pdf
+  console.log('\n📋 Step 2: Validate file type')
   const isImage = file.type.startsWith('image/')
   const isPdf = file.type === 'application/pdf'
+  console.log('  - isImage:', isImage)
+  console.log('  - isPdf:', isPdf)
 
   if (!isImage && !isPdf) {
+    console.error('❌ Step 2 FAILED: Invalid file type')
     return { error: 'Only PDF and image files are supported' }
   }
+  console.log('✅ Step 2: File type valid')
 
   // STEP 3: Validate file size
-  // 10MB = 10 * 1024 * 1024 bytes
-  // Prevents someone from uploading 1GB file and crashing our storage
+  console.log('\n📋 Step 3: Validate file size')
   const maxSize = 10 * 1024 * 1024
+  console.log('  - maxSize:', maxSize, 'bytes (10MB)')
+  console.log('  - file.size:', file.size, 'bytes')
+  console.log('  - ratio:', ((file.size / maxSize) * 100).toFixed(2) + '%')
+
   if (file.size > maxSize) {
+    console.error('❌ Step 3 FAILED: File too large')
     return { error: 'File size must be less than 10MB' }
   }
+  console.log('✅ Step 3: File size valid')
 
   try {
-    // STEP 4: Get Supabase client (with user session)
+    // STEP 4: Create Supabase client
+    console.log('\n📋 Step 4: Create Supabase client')
+    console.log('  - Calling createServerClient()...')
     const supabase = await createServerClient()
+    console.log('✅ Step 4: Supabase client created')
+    console.log('  - supabase object keys:', Object.keys(supabase).slice(0, 5), '...')
 
-    // STEP 5: Verify user is authenticated
-    // getUser() reads the session cookie and asks Supabase if it's valid
-    // If no cookie or expired cookie, user will be null
+    // STEP 5: Get authenticated user
+    console.log('\n📋 Step 5: Get authenticated user')
+    console.log('  - Calling supabase.auth.getUser()...')
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser()
 
-    if (!user) {
+    console.log('  - Auth call result:')
+    console.log('    - user:', user ? 'EXISTS' : 'NULL')
+    console.log('    - error:', authError ? 'YES - ' + authError.message : 'NO')
+
+    if (user) {
+      console.log('✅ Step 5: User authenticated')
+      console.log('  - user.id:', user.id)
+      console.log('  - user.email:', user.email)
+      console.log('  - user.role:', user.role)
+      console.log('  - user.app_metadata:', JSON.stringify(user.app_metadata))
+      console.log('  - user.user_metadata:', JSON.stringify(user.user_metadata))
+      console.log('  - user.created_at:', user.created_at)
+      console.log('  - user.last_sign_in_at:', user.last_sign_in_at)
+    } else {
+      console.error('❌ Step 5 FAILED: User is null')
+      console.error('  - authError:', authError)
       return { error: 'Not authenticated' }
     }
 
     // STEP 6: Generate unique filename
-    // Use timestamp to avoid collisions (two users can't upload "product.pdf" at same time)
-    // Example: 1712948572304.pdf (timestamp in milliseconds)
+    console.log('\n📋 Step 6: Generate unique filename')
     const fileExt = file.name.split('.').pop()
-    const fileName = `${Date.now()}.${fileExt}`
+    const timestamp = Date.now()
+    const fileName = `${timestamp}.${fileExt}`
+    console.log('  - original name:', file.name)
+    console.log('  - extension:', fileExt)
+    console.log('  - timestamp:', timestamp)
+    console.log('  - generated fileName:', fileName)
+    console.log('✅ Step 6: Filename generated')
 
     // STEP 7: Create storage path
-    // Format: <user-id>/<timestamp>.<ext>
-    // Example: "550e8400-e29b-41d4-a716-446655440000/1712948572304.pdf"
-    // This lets Supabase RLS policy verify: "This user can only upload to their folder"
+    console.log('\n📋 Step 7: Create storage path')
     const filePath = `${user.id}/${fileName}`
+    console.log('  - user.id:', user.id)
+    console.log('  - fileName:', fileName)
+    console.log('  - filePath:', filePath)
+    console.log('✅ Step 7: Storage path created')
 
-    // STEP 8: Upload file to Supabase Storage
-    // This sends file data to Supabase servers
-    // Throws error if network fails, file too large, or storage quota exceeded
-    const { error: uploadError } = await supabase.storage
+    // STEP 8: Upload to Supabase Storage
+    console.log('\n📋 Step 8: Upload file to Supabase Storage')
+    console.log('  - bucket: uploads')
+    console.log('  - path:', filePath)
+    console.log('  - contentType:', file.type)
+    console.log('  - file size:', file.size, 'bytes')
+    console.log('  - Calling storage.upload()...')
+
+    const { data: storageData, error: uploadError } = await supabase.storage
       .from('uploads')
       .upload(filePath, file, {
-        contentType: file.type, // Tells Supabase what type of file this is
+        contentType: file.type,
       })
 
+    console.log('  - Storage upload result:')
     if (uploadError) {
+      console.error('❌ Step 8 FAILED: Storage upload error')
+      console.error('  - error.name:', uploadError.name)
+      console.error('  - error.message:', uploadError.message)
+      console.error('  - error:', uploadError)
       return { error: `Upload failed: ${uploadError.message}` }
+    } else {
+      console.log('✅ Step 8: File uploaded to storage')
+      console.log('  - storageData:', storageData)
+      console.log('  - storageData.path:', storageData?.path)
+      console.log('  - storageData.id:', storageData?.id)
     }
 
     // STEP 9: Create database record
-    // We need to track:
-    // - Where the file is stored (file_path)
-    // - What the user called it (file_name)
-    // - What type it is (file_type)
-    // - Which user uploaded it (profile_id)
-    // This metadata helps us retrieve and process the file later
-    const { data, error: dbError } = await supabase
+    console.log('\n📋 Step 9: Create database record')
+    const insertData = {
+      profile_id: user.id,
+      file_name: file.name,
+      file_path: filePath,
+      file_type: isImage ? 'image' : 'pdf',
+    }
+    console.log('  - insertData:', JSON.stringify(insertData, null, 2))
+    console.log('  - Calling supabase.from("uploads").insert()...')
+
+    const { data: dbData, error: dbError } = await supabase
       .from('uploads')
-      .insert({
-        profile_id: user.id,
-        file_name: file.name,      // "product-catalog.pdf"
-        file_path: filePath,        // "user-id/1712948572304.pdf"
-        file_type: isImage ? 'image' : 'pdf',
-      })
-      .select()                     // Return the inserted row
-      .single()                     // Expect exactly one row
+      .insert(insertData)
+      .select()
+      .single()
+
+    console.log('  - Database insert result:')
+    console.log('    - data:', dbData)
+    console.log('    - error:', dbError ? 'YES' : 'NO')
 
     if (dbError) {
+      console.error('❌ Step 9 FAILED: Database insert error')
+      console.error('  - error.name:', (dbError as any).name)
+      console.error('  - error.message:', dbError.message)
+      console.error('  - error.code:', (dbError as any).code)
+      console.error('  - error.status:', (dbError as any).status)
+      console.error('  - error.details:', (dbError as any).details)
+      console.error('  - error.hint:', (dbError as any).hint)
+      console.error('  - Full error object:', JSON.stringify(dbError, null, 2))
       return { error: `Failed to save upload: ${dbError.message}` }
     }
 
-    // STEP 10: Clear cached data
-    // Next.js caches page content for performance
-    // Since we just created a new upload, old cache is stale
-    // Revalidate tells Next.js to refresh the /app/wave page next time user visits
-    revalidatePath('/app/wave')
+    console.log('✅ Step 9: Database record created')
+    console.log('  - dbData.id:', dbData?.id)
+    console.log('  - dbData:', JSON.stringify(dbData, null, 2))
 
-    // STEP 11: Success!
-    // Return upload ID so client knows which file to extract
-    return { success: true, uploadId: data.id }
+    // STEP 10: Revalidate cache
+    console.log('\n📋 Step 10: Revalidate cache')
+    revalidatePath('/app/wave')
+    console.log('✅ Step 10: Cache revalidated for /app/wave')
+
+    // STEP 11: Success
+    console.log('\n✅ ═══════════════════════════════════════════════════════════════')
+    console.log('✅ UPLOAD FILE SUCCESS')
+    console.log('✅ uploadId:', dbData?.id)
+    console.log('✅ ═══════════════════════════════════════════════════════════════\n')
+
+    return { success: true, uploadId: dbData?.id }
   } catch (error) {
-    // UNEXPECTED ERROR
-    // Log full details to server logs for debugging
-    // But return generic message to client (don't expose internals)
-    console.error('Upload error:', error)
+    console.error('\n❌ ═══════════════════════════════════════════════════════════════')
+    console.error('❌ UNEXPECTED ERROR IN TRY BLOCK')
+    console.error('❌ ═══════════════════════════════════════════════════════════════')
+    console.error('  - error:', error)
+    console.error('  - error.name:', (error as any).name)
+    console.error('  - error.message:', (error as any).message)
+    console.error('  - error.stack:', (error as any).stack)
+    console.error('❌ ═══════════════════════════════════════════════════════════════\n')
     return { error: 'An unexpected error occurred' }
   }
 }

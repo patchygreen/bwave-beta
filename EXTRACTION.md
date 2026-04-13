@@ -147,7 +147,7 @@ Located in `lib/server/extract.ts`
 4. **Call Claude Vision**
    ```typescript
    const response = await client.messages.create({
-     model: 'claude-3-5-sonnet-20241022',
+     model: 'claude-sonnet-4-6',
      max_tokens: 2048,
      messages: [{
        role: 'user',
@@ -351,7 +351,7 @@ Claude requests timeout after 60 seconds. For larger files:
 
 ```typescript
 const response = await client.messages.create({
-  model: 'claude-3-5-sonnet-20241022',
+  model: 'claude-sonnet-4-6',
   max_tokens: 2048,
   timeout: 60000, // 60 second timeout
   messages: [...]
@@ -382,9 +382,9 @@ ANTHROPIC_API_KEY=sk-ant-...  // Free tier key (50k tokens/month)
 ### Switching Models
 
 ```typescript
-// Current: Claude 3.5 Sonnet (best for vision)
+// Current: Claude Sonnet 4.6 (best for vision)
 const response = await client.messages.create({
-  model: 'claude-3-5-sonnet-20241022',  // 200K context, vision
+  model: 'claude-sonnet-4-6',  // 200K context, vision
   ...
 })
 

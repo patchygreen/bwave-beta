@@ -35,10 +35,14 @@ export default function UploadForm() {
 
     const result = await uploadFile(formData)
 
+    console.log('Upload result:', result)
+
     if (result.error) {
+      console.error('Upload error:', result.error)
       setError(result.error)
       setLoading(false)
     } else {
+      console.log('Upload successful, redirecting to:', `/app/extract/${result.uploadId}`)
       // Redirect to review/extraction page
       router.push(`/app/extract/${result.uploadId}`)
     }
