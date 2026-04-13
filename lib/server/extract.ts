@@ -4,6 +4,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createServerClient } from '@/lib/supabase-server'
 import { createClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/logger'
+import { enforceRateLimit } from '@/lib/rate-limit'
 import type { ProductData } from '@/lib/types'
 
 // Create a service role client for reading files (bypasses storage RLS)
@@ -45,7 +46,14 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
       return { success: false, error: 'Not authenticated' }
     }
 
-    logger.info('📤 extraction', 'Starting extraction', { uploadId, userId: user.id })
+    // Rate limit check: max 10 extractions per hour
+    try {
+      const { remaining } = enforceRateLimit(user.id, 'extraction')
+      logger.info('📤 extraction', 'Starting extraction', { uploadId, userId: user.id, remaining })
+    } catch (rateLimitError) {
+      logger.warn('⏱️ extraction', 'Rate limit exceeded', rateLimitError instanceof Error ? rateLimitError : new Error(String(rateLimitError)))
+      return { success: false, error: 'Too many extractions. Please try again in an hour.' }
+    }
 
     // 2. FETCH UPLOAD METADATA
     const { data: upload, error: uploadError } = await supabase

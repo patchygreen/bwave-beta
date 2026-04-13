@@ -1,6 +1,7 @@
 'use server'
 
 import { createServerClient } from '@/lib/supabase-server'
+import { enforceRateLimit } from '@/lib/rate-limit'
 import { revalidatePath } from 'next/cache'
 
 /**
@@ -151,17 +152,21 @@ export async function uploadFile(formData: FormData) {
 
     if (user) {
       console.log('✅ Step 5: User authenticated')
-      console.log('  - user.id:', user.id)
-      console.log('  - user.email:', user.email)
-      console.log('  - user.role:', user.role)
-      console.log('  - user.app_metadata:', JSON.stringify(user.app_metadata))
-      console.log('  - user.user_metadata:', JSON.stringify(user.user_metadata))
-      console.log('  - user.created_at:', user.created_at)
-      console.log('  - user.last_sign_in_at:', user.last_sign_in_at)
     } else {
       console.error('❌ Step 5 FAILED: User is null')
       console.error('  - authError:', authError)
       return { error: 'Not authenticated' }
+    }
+
+    // STEP 5.5: Rate limit check
+    console.log('\n📋 Step 5.5: Rate limiting')
+    try {
+      const { remaining } = enforceRateLimit(user.id, 'upload')
+      console.log(`✅ Rate limit check passed - ${remaining} uploads remaining this hour`)
+    } catch (rateLimitError) {
+      console.error('❌ Step 5.5 FAILED: Rate limit exceeded')
+      console.error('  -', rateLimitError instanceof Error ? rateLimitError.message : String(rateLimitError))
+      return { error: 'Too many uploads. Please try again in an hour.' }
     }
 
     // STEP 6: Generate unique filename

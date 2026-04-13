@@ -8,6 +8,7 @@ export default function UploadForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -22,11 +23,19 @@ export default function UploadForm() {
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
   }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
+    setIsDragging(false)
     const file = e.dataTransfer.files?.[0]
     if (file && fileInputRef.current) {
       fileInputRef.current.files = e.dataTransfer.files
@@ -68,8 +77,13 @@ export default function UploadForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* File Input */}
       <div
-        className="border-2 border-dashed border-bwave-blue/40 rounded-lg p-8 text-center hover:border-bwave-blue/60 transition-colors focus-within:ring-2 focus-within:ring-bwave-blue focus-within:ring-offset-2 focus-within:ring-offset-black bg-gradient-to-br from-bwave-blue/10 to-bwave-cyan/10 cursor-pointer"
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer focus-within:ring-2 focus-within:ring-bwave-blue focus-within:ring-offset-2 focus-within:ring-offset-black ${
+          isDragging
+            ? 'border-bwave-cyan bg-bwave-cyan/20 shadow-lg shadow-bwave-cyan/30'
+            : 'border-bwave-blue/40 hover:border-bwave-blue/60 bg-gradient-to-br from-bwave-blue/10 to-bwave-cyan/10'
+        }`}
         onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <input
@@ -85,9 +99,15 @@ export default function UploadForm() {
         />
 
         <label htmlFor="file-input" className="cursor-pointer block">
-          <div className="text-4xl mb-2" aria-hidden="true">📄</div>
+          <div className={`text-4xl mb-2 transition-transform ${isDragging ? 'scale-110' : ''}`} aria-hidden="true">
+            {isDragging ? '⬇️' : '📄'}
+          </div>
           <p className="text-white font-medium mb-1">
-            {fileName ? `Selected: ${fileName}` : 'Click to upload or drag and drop'}
+            {isDragging
+              ? 'Drop your file here'
+              : fileName
+              ? `Selected: ${fileName}`
+              : 'Click to upload or drag and drop'}
           </p>
           <p id="file-description" className="text-sm text-slate-400">
             PDF or image (PNG, JPG, WebP)

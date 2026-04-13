@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase-server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { logger } from '@/lib/logger'
+import { enforceRateLimit } from '@/lib/rate-limit'
 import type { ProductData } from '@/lib/types'
 
 /**
@@ -44,7 +45,14 @@ export async function exportCSV(waveId: string): Promise<{ success: boolean; url
       return { success: false, error: 'Not authenticated' }
     }
 
-    logger.info('📊 export', 'Export started', { waveId, userId: user.id })
+    // Rate limit check: max 50 exports per hour
+    try {
+      const { remaining } = enforceRateLimit(user.id, 'export')
+      logger.info('📊 export', 'Export started', { waveId, userId: user.id, remaining })
+    } catch (rateLimitError) {
+      logger.warn('⏱️ export', 'Rate limit exceeded', rateLimitError instanceof Error ? rateLimitError : new Error(String(rateLimitError)))
+      return { success: false, error: 'Too many exports. Please try again in an hour.' }
+    }
 
     // 2. Fetch product data from database
     const { data: wave, error: waveError } = await supabase
