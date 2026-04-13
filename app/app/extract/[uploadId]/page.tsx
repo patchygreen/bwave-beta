@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
+import { useEffect, useState, use, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { extractProducts } from '@/lib/server/extract'
 import { logger } from '@/lib/logger'
@@ -11,8 +11,12 @@ export default function ExtractPage({ params }: { params: Promise<{ uploadId: st
   const { uploadId } = use(params)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(true)
+  const hasStartedRef = useRef(false)
 
   useEffect(() => {
+    if (hasStartedRef.current) return // Prevent double extraction (StrictMode)
+    hasStartedRef.current = true
+
     const runExtraction = async () => {
       try {
         logger.info('🚀 extraction', 'Extract page mounted, starting extraction', { uploadId })
