@@ -4,7 +4,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createServerClient } from '@/lib/supabase-server'
 import { createClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/logger'
-import { enforceRateLimit } from '@/lib/rate-limit'
+import { enforceRateLimit, refundRateLimit } from '@/lib/rate-limit'
 import type { ProductData } from '@/lib/types'
 
 // Create a service role client for reading files (bypasses storage RLS)
@@ -238,7 +238,12 @@ Rules:
     // Check if extracted data is empty (no useful fields)
     const hasData = Object.values(extractedData).some((val) => val && val !== '' && !Array.isArray(val) ? true : Array.isArray(val) && val.length > 0)
     if (!hasData) {
-      logger.warn('⚠️ extraction', 'No product data could be extracted from file', { uploadId, extractedData })
+      logger.warn('⚠️ extraction', 'No product data extracted from file', { uploadId, fileName: upload.file_name })
+
+      // Refund the extraction rate limit since Claude call was wasted on a useless file
+      refundRateLimit(user.id, 'extraction')
+      logger.info('♻️ extraction', 'Refunded extraction rate limit (no data found)', { userId: user.id })
+
       return {
         success: false,
         error: 'Could not extract product information from this file. Make sure it contains product details like title, description, price, or images.',

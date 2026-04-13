@@ -102,6 +102,18 @@ export function enforceRateLimit(
 }
 
 /**
+ * Refund a rate limit request (e.g., if extraction fails and returns no data)
+ */
+export function refundRateLimit(userId: string, operation: keyof typeof DEFAULT_LIMITS): void {
+  const key = `${operation}:${userId}`
+  const entry = rateLimitStore.get(key)
+
+  if (entry && entry.count > 0) {
+    entry.count--
+  }
+}
+
+/**
  * Get current usage for debugging
  */
 export function getUsage(userId: string, operation: keyof typeof DEFAULT_LIMITS) {
