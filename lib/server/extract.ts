@@ -60,17 +60,6 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
       return { success: false, error: 'Upload not found' }
     }
 
-    console.log('\n🔍 ═══════════════════════════════════════════════════════════════')
-    console.log('🔍 EXTRACT DEBUG: Upload metadata from database')
-    console.log('🔍 ═══════════════════════════════════════════════════════════════')
-    console.log('  - upload.id:', upload.id)
-    console.log('  - upload.file_name:', upload.file_name)
-    console.log('  - upload.file_path:', upload.file_path)
-    console.log('  - upload.file_type:', upload.file_type)
-    console.log('  - upload.created_at:', upload.created_at)
-    console.log('  - Full upload object:', JSON.stringify(upload, null, 2))
-    console.log('🔍 ═══════════════════════════════════════════════════════════════\n')
-
     logger.info('📄 extraction', 'Upload metadata fetched', {
       uploadId,
       fileName: upload.file_name,
@@ -85,23 +74,15 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
     const serviceRoleClient = createServiceRoleClient()
     const isPdf = upload.file_type === 'pdf'
 
-    console.log('📋 Preparing file for Claude...')
-    console.log('  - upload.file_type:', upload.file_type)
-    console.log('  - isPdf:', isPdf)
-    console.log('  - file_name:', upload.file_name)
-    console.log('  - file_path:', upload.file_path)
-
     let contentBlock: any
 
     if (isPdf) {
       // PDFs must use signed URL with type 'document'
-      console.log('📋 Creating signed URL for PDF...')
       const { data: signedUrlData, error: urlError } = await serviceRoleClient.storage
         .from('uploads')
         .createSignedUrl(upload.file_path, 3600)
 
       if (urlError || !signedUrlData?.signedUrl) {
-        console.error('❌ Failed to create signed URL:', urlError)
         logger.error('🔗 extraction', 'Failed to create signed URL', new Error(urlError?.message || 'Unknown error'), {
           uploadId,
           filePath: upload.file_path,
@@ -109,7 +90,6 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
         return { success: false, error: 'Failed to access file' }
       }
 
-      console.log('✅ Signed URL created for PDF')
       contentBlock = {
         type: 'document',
         source: {
@@ -119,13 +99,11 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
       }
     } else {
       // Images use base64
-      console.log('📋 Downloading image from storage...')
       const { data: fileBuffer, error: downloadError } = await serviceRoleClient.storage
         .from('uploads')
         .download(upload.file_path)
 
       if (downloadError || !fileBuffer) {
-        console.error('❌ Failed to download image:', downloadError)
         logger.error('🔗 extraction', 'Failed to download image', new Error(downloadError?.message || 'Unknown error'), {
           uploadId,
           filePath: upload.file_path,
@@ -133,9 +111,7 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
         return { success: false, error: 'Failed to access file' }
       }
 
-      console.log('📋 Converting image to base64...')
       let base64String: string
-
       if (fileBuffer instanceof Blob) {
         const arrayBuffer = await fileBuffer.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
@@ -143,8 +119,6 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
       } else {
         base64String = Buffer.from(fileBuffer).toString('base64')
       }
-
-      console.log('✅ Image converted to base64, length:', base64String.length)
 
       // Determine correct media type from file extension
       const ext = upload.file_name.toLowerCase().split('.').pop()
@@ -156,8 +130,6 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
         'webp': 'image/webp',
       }
       const mediaType = mediaTypeMap[ext || ''] || 'image/jpeg'
-      console.log('  - File extension:', ext)
-      console.log('  - Media type:', mediaType)
 
       contentBlock = {
         type: 'image',
@@ -169,9 +141,15 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
       }
     }
 
-    logger.debug('🔗 extraction', 'File prepared for Claude', { uploadId, isPdf })
+    // 4. CALL CLAUDE VISION API
+    logger.info('🤖 extraction', 'Calling Claude Vision API', { uploadId, fileType: upload.file_type })
 
-    // 4. PREPARE CLAUDE PROMPT WITH SCHEMA
+    const claudeTimer = logger.timer('🤖 extraction', 'claudeVisionCall')
+
+    const client = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    })
+
     const claudePrompt = `You are extracting product data from a supplier PDF or product image for import into Shopify.
 
 Extract ALL available fields from the document and return ONLY a valid JSON object (no markdown, no explanations).
@@ -202,19 +180,6 @@ Rules:
 - All prices should be strings (preserve formatting like currency symbols)
 - Tags should be lowercase and single words`
 
-    // 5. CALL CLAUDE VISION API
-    logger.info('🤖 extraction', 'Calling Claude Vision API', { uploadId, fileType: upload.file_type })
-
-    const claudeTimer = logger.timer('🤖 extraction', 'claudeVisionCall')
-
-    const client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    })
-
-    console.log('📋 Claude API call preparation:')
-    console.log('  - contentBlock type:', contentBlock.type)
-    console.log('  - contentBlock:', JSON.stringify(contentBlock).substring(0, 200))
-
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 2048,
@@ -234,15 +199,13 @@ Rules:
 
     claudeTimer.end({ success: true })
 
-    // 6. EXTRACT TEXT AND PARSE JSON
+    // 5. EXTRACT TEXT AND PARSE JSON
     const responseText = response.content.find((block) => block.type === 'text')?.text
 
     if (!responseText) {
       logger.error('📝 extraction', 'Claude returned no text response', new Error('Empty response'), { uploadId })
       return { success: false, error: 'Failed to extract data' }
     }
-
-    logger.debug('📝 extraction', 'Claude response received', { uploadId, responseLength: responseText.length })
 
     // Parse JSON - Claude might include markdown code blocks, so strip them
     let jsonString = responseText.trim()
@@ -264,9 +227,7 @@ Rules:
       return { success: false, error: 'Failed to parse extraction results' }
     }
 
-    // 7. INSERT INTO product_waves TABLE
-    logger.info('💾 extraction', 'Inserting extracted data into database', { uploadId })
-
+    // 6. INSERT INTO product_waves TABLE
     const { data: waveData, error: insertError } = await supabase
       .from('product_waves')
       .insert({
