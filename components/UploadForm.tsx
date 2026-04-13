@@ -19,6 +19,22 @@ export default function UploadForm() {
     }
   }
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const file = e.dataTransfer.files?.[0]
+    if (file && fileInputRef.current) {
+      fileInputRef.current.files = e.dataTransfer.files
+      setFileName(file.name)
+      setError(null)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -51,7 +67,11 @@ export default function UploadForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* File Input */}
-      <div className="border-2 border-dashed border-bwave-blue/40 rounded-lg p-8 text-center hover:border-bwave-blue/60 transition-colors focus-within:ring-2 focus-within:ring-bwave-blue focus-within:ring-offset-2 focus-within:ring-offset-black bg-gradient-to-br from-bwave-blue/10 to-bwave-cyan/10">
+      <div
+        className="border-2 border-dashed border-bwave-blue/40 rounded-lg p-8 text-center hover:border-bwave-blue/60 transition-colors focus-within:ring-2 focus-within:ring-bwave-blue focus-within:ring-offset-2 focus-within:ring-offset-black bg-gradient-to-br from-bwave-blue/10 to-bwave-cyan/10 cursor-pointer"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         <input
           ref={fileInputRef}
           type="file"
@@ -91,7 +111,7 @@ export default function UploadForm() {
         type="submit"
         disabled={loading || !fileName}
         aria-busy={loading}
-        className="w-full bg-bwave-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-bwave-cyan hover:shadow-lg hover:shadow-bwave-blue/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
+        className="w-full bg-bwave-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-bwave-cyan hover:shadow-lg hover:shadow-bwave-blue/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:ring-offset-2 focus:ring-offset-slate-900"
       >
         {loading ? 'Uploading...' : 'Continue'}
       </button>
