@@ -40,7 +40,7 @@ export async function exportCSV(waveId: string): Promise<{ success: boolean; url
     } = await supabase.auth.getUser()
 
     if (!user) {
-      logger.warn('📊 export', 'Unauthorized export attempt', new Error('No user session'), { waveId })
+      logger.warn('📊 export', 'Unauthorized export attempt', { waveId })
       return { success: false, error: 'Not authenticated' }
     }
 

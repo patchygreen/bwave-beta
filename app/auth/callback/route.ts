@@ -60,8 +60,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/login?error=no_code', request.url))
   }
 
-  // Prepare server cookie storage
-  const cookieStore = cookies()
+  // Prepare server cookie storage (async in Next.js 16+)
+  const cookieStore = await cookies()
   logger.debug('auth', 'Cookie store initialized')
 
   // Prepare the response we'll send back to browser

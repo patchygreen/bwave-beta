@@ -4,9 +4,8 @@ import Link from 'next/link'
 export default async function DashboardPage() {
   const supabase = await createServerClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // User is authenticated via middleware protection on /app routes
+  await supabase.auth.getUser()
 
   // Fetch recent waves with upload info
   const { data: recentWaves } = await supabase
