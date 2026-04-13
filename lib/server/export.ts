@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { logger } from '@/lib/logger'
 import { enforceRateLimit } from '@/lib/rate-limit'
+import { GenerateCSVRequestSchema } from '@/lib/validation/schemas'
 import type { ProductData } from '@/lib/types'
 
 /**
@@ -34,6 +35,14 @@ export async function exportCSV(waveId: string): Promise<{ success: boolean; url
   const timer = logger.timer('📊 export', 'exportCSV')
 
   try {
+    // 0. Validate input
+    try {
+      GenerateCSVRequestSchema.parse({ waveId })
+    } catch (validationError) {
+      logger.warn('📊 export', 'Invalid export request', { waveId })
+      return { success: false, error: 'Invalid request' }
+    }
+
     // 1. Authenticate user
     const supabase = await createServerClient()
     const {

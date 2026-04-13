@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase-server'
 import { createClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/logger'
 import { enforceRateLimit, refundRateLimit } from '@/lib/rate-limit'
+import { validateProductDataSafe } from '@/lib/validation/schemas'
 import type { ProductData } from '@/lib/types'
 
 // Create a service role client for reading files (bypasses storage RLS)
@@ -226,8 +227,20 @@ Rules:
 
     let extractedData: Partial<ProductData>
     try {
-      extractedData = JSON.parse(jsonString)
+      const parsed = JSON.parse(jsonString)
       logger.debug('✅ extraction', 'JSON parsed successfully', { uploadId })
+
+      // Validate Claude's response matches ProductData schema
+      const validation = validateProductDataSafe(parsed)
+      if (!validation.success) {
+        logger.error('📝 extraction', 'Claude response failed validation', new Error(validation.error || 'Invalid schema'), {
+          uploadId,
+          responsePreview: JSON.stringify(parsed).substring(0, 200),
+        })
+        return { success: false, error: 'Failed to validate extraction results' }
+      }
+
+      extractedData = validation.data || parsed
     } catch (parseError) {
       logger.error('❌ extraction', 'Failed to parse Claude response as JSON', parseError instanceof Error ? parseError : new Error(String(parseError)), {
         uploadId,
