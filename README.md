@@ -2,56 +2,75 @@
 
 Convert supplier PDFs and images into Shopify-ready product CSVs using AI extraction.
 
-**Status:** ✅ Steps 1-6 complete. Ready for Step 7 (CSV export).
+**Status:** ✅ MVP Complete – Production Ready (8/10)
+- All 7 steps implemented (upload → extract → review → export)
+- Input validation, error tracking, rate limiting
+- Ready for closed beta on Vercel
 
 ## Tech Stack
 
-- **Frontend:** Next.js 14+ (App Router), React, TypeScript, Tailwind CSS with dark theme
-- **Backend:** Next.js Server Actions, Supabase (Auth + Storage)
-- **AI:** Anthropic Claude 3.5 Sonnet Vision API
-- **Database:** Supabase PostgreSQL with Row Level Security
-- **Testing:** Jest, React Testing Library
+- **Frontend:** Next.js 16 (App Router), React 18, TypeScript, Tailwind CSS with dark theme
+- **Backend:** Next.js Server Actions, Supabase (Auth + Storage + PostgreSQL)
+- **AI:** Anthropic Claude Vision API (Sonnet 4.6)
+- **Database:** Supabase PostgreSQL with Row Level Security (RLS)
+- **Validation:** Zod (schema validation at server boundaries)
+- **Error Tracking:** Sentry (error monitoring + session replay)
+- **Rate Limiting:** In-memory (works for closed beta; use Redis for scale)
+- **Testing:** Jest, React Testing Library (37 tests)
 - **CI/CD:** Husky pre-commit hooks with auto-test
-- **Deployment:** Vercel (ready)
-- **Logging:** Structured JSON with emoji indicators
+- **Deployment:** Vercel (with auto GitHub deployment)
+- **Logging:** Structured JSON with emoji indicators (PII-safe)
 
 ## Project Structure
 
 ```
 app/
-  ├── layout.tsx              # Root layout (public)
+  ├── layout.tsx              # Root layout with Sentry provider
   ├── page.tsx                # Home page
+  ├── error.tsx               # Global error boundary (Sentry capture)
   ├── globals.css             # Global styles (dark theme)
   ├── login/page.tsx          # Email magic link auth
   ├── auth/callback/route.ts  # OAuth2/PKCE callback
   └── app/                    # Protected routes (auth required)
      ├── layout.tsx           # App shell with header & nav
-     ├── dashboard/page.tsx   # Dashboard with stats & recent waves
+     ├── dashboard/page.tsx   # Dashboard with stats
      ├── wave/page.tsx        # File upload form
-     ├── extract/[uploadId]/  # Claude extraction with WaveLoader
-     └── review/[waveId]/     # Editable product review form
+     ├── extract/[uploadId]/  # Claude extraction processing
+     ├── review/[waveId]/     # Editable product data form
+     └── export/[waveId]/     # CSV download page
 
 lib/
-  ├── logger.ts               # Structured JSON logging (with emojis!)
-  ├── supabase.ts             # Browser client (PKCE + cookies)
-  ├── supabase-server.ts      # Server-side client
+  ├── logger.ts               # Structured JSON logging
+  ├── sentry.ts               # Sentry error utilities
+  ├── supabase.ts             # Browser client
+  ├── supabase-server.ts      # Server client
+  ├── rate-limit.ts           # Rate limiting (10 extract/hr per user)
   ├── types.ts                # TypeScript data types
-  └── server/
-     ├── upload.ts            # File upload server action
-     └── extract.ts           # Claude extraction server action
+  ├── config/
+  │  └── validate-env.ts      # Env validation at build/runtime
+  ├── server/
+  │  ├── upload.ts            # File upload server action
+  │  ├── extract.ts           # Claude extraction server action
+  │  ├── export.ts            # CSV generation server action
+  │  └── review.ts            # Product data save server action
+  └── validation/
+     └── schemas.ts           # Zod validation schemas
 
 components/
-  ├── WaveLoader.tsx          # Animated wave loader (brand colors)
-  ├── UploadForm.tsx          # File upload component
+  ├── WaveLoader.tsx          # Animated wave loader
+  ├── UploadForm.tsx          # Drag-and-drop file upload
+  ├── SentryProvider.tsx      # Sentry client-side wrapper
   └── SignOutButton.tsx       # Sign out button
 
 __tests__/
   ├── components/             # UI component tests
-  └── lib/                    # Server logic tests
+  └── lib/                    # Server logic tests (37 tests total)
+
+scripts/
+  ├── validate-env.js         # Pre-build env validation
+  └── cleanup-failed-uploads.ts # Clean orphaned uploads
 
 middleware.ts                 # Route protection & auth enforcement
-SCHEMA.md                     # Database setup & SQL
-EXTRACTION.md                 # Claude Vision integration docs
 ```
 
 ## Development Setup

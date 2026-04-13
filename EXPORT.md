@@ -247,7 +247,6 @@ RLS policies ensure users only access their own CSVs.
   profile_id: string        // User ID (for RLS)
   csv_path: string          // Path in storage bucket
   created_at: timestamp     // When exported
-  updated_at: timestamp     // Auto-updated
 }
 ```
 

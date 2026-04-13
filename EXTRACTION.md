@@ -127,6 +127,14 @@ Located in `lib/server/extract.ts`
    if (!user) return { success: false, error: 'Not authenticated' }
    ```
 
+1b. **Rate limit check** — Max 10 extractions per hour per user (Claude is expensive!)
+   ```typescript
+   const { remaining } = enforceRateLimit(user.id, 'extraction')
+   if (remaining <= 0) {
+     return { error: 'Rate limit exceeded. Try again in an hour.' }
+   }
+   ```
+
 2. **Fetch upload metadata** — Get file path and name
    ```typescript
    const { data: upload } = await supabase
@@ -137,11 +145,37 @@ Located in `lib/server/extract.ts`
      .single()
    ```
 
-3. **Get signed URL** — Supabase Storage URL (1 hour expiry)
+3. **Prepare file content** — Different handling for PDFs vs images
+   
+   **For PDFs:** Get signed URL (1 hour expiry, `document` type)
    ```typescript
    const { data: signedUrlData } = await supabase.storage
      .from('uploads')
      .createSignedUrl(upload.file_path, 3600)
+   
+   contentBlock = {
+     type: 'document',
+     source: { type: 'url', url: signedUrlData.signedUrl }
+   }
+   ```
+
+   **For images:** Download and convert to base64
+   ```typescript
+   const { data: fileBuffer } = await supabase.storage
+     .from('uploads')
+     .download(upload.file_path)
+   
+   const base64String = Buffer.from(fileBuffer).toString('base64')
+   const mediaType = 'image/jpeg' // or 'image/png', 'image/webp', 'image/gif'
+   
+   contentBlock = {
+     type: 'image',
+     source: {
+       type: 'base64',
+       media_type: mediaType,
+       data: base64String
+     }
+   }
    ```
 
 4. **Call Claude Vision**
@@ -152,7 +186,7 @@ Located in `lib/server/extract.ts`
      messages: [{
        role: 'user',
        content: [
-         { type: 'image', source: { type: 'url', url: signedUrl } },
+         contentBlock,  // document or image
          { type: 'text', text: claudePrompt }
        ]
      }]
@@ -165,7 +199,23 @@ Located in `lib/server/extract.ts`
    if (jsonString.startsWith('```json')) {
      jsonString = jsonString.replace(/^```json\n/, '').replace(/\n```$/, '')
    }
-   const extractedData = JSON.parse(jsonString)
+   const parsed = JSON.parse(jsonString)
+   ```
+
+5b. **Validate with Zod schema** — Ensure Claude response matches ProductData type
+   ```typescript
+   const validation = validateProductDataSafe(parsed)
+   if (!validation.success) {
+     return { error: 'Failed to validate extraction results' }
+   }
+   const extractedData = validation.data
+   ```
+
+   If no useful data was extracted (all fields null/empty):
+   ```typescript
+   // Refund rate limit since Claude call was wasted
+   refundRateLimit(user.id, 'extraction')
+   return { error: 'Could not extract product information from this file.' }
    ```
 
 6. **Store in database** — Insert into `product_waves`

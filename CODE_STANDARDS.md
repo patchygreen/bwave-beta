@@ -230,9 +230,47 @@ console.log('Using key:', process.env.SOME_KEY)
 ```
 
 ### Input Validation
-- ✓ Validate all form inputs on submit
-- ✓ Email whitelist checked before Supabase call
-- ✓ File type and size checked before upload
+
+**Use Zod schemas at server boundaries.** All user input must be validated before database writes.
+
+```typescript
+// lib/validation/schemas.ts — where all schemas live
+import { z } from 'zod'
+
+export const ProductDataSchema = z.object({
+  title: z.string().min(1).max(255).nullable().optional(),
+  description: z.string().max(50000).nullable().optional(),
+  // ... all fields with limits
+})
+
+export function validateProductDataSafe(data: unknown) {
+  try {
+    return { success: true, data: ProductDataSchema.parse(data) }
+  } catch (error) {
+    return { success: false, error: error.issues[0].message }
+  }
+}
+```
+
+**Apply validation in server actions:**
+```typescript
+// lib/server/review.ts — server action that saves user edits
+export async function saveProductWave(waveId: string, data: Partial<ProductData>) {
+  const validation = validateProductDataSafe(data)
+  if (!validation.success) {
+    return { success: false, error: validation.error }
+  }
+  // Now safe to write to DB
+  await supabase.from('product_waves').update({ extracted_data: validation.data })
+}
+```
+
+**Validation rules:**
+- ✓ Validate ALL user input at server boundaries (server actions, API routes)
+- ✓ Validate Claude's API responses too (can return unexpected shapes)
+- ✓ Use Zod for schema validation (lib/validation/schemas.ts)
+- ✓ Return safe error messages to client, log details server-side
+- ✓ Set field limits (string max lengths, array max sizes)
 - ✓ Never trust client-side validation alone
 
 ## Testing
@@ -319,12 +357,14 @@ it('checks if fileName state is null', () => {})
 - ✗ Duplicate functionality
 
 ### Current Dependencies
-- `next`: 14.1.0 (framework)
-- `react`: 18.3.1 (UI)
-- `@supabase/supabase-js`: 2.39.0 (database + auth)
-- `@supabase/ssr`: 0.1.0 (server-side auth)
-- `@anthropic-ai/sdk`: 0.24.0 (AI extraction)
-- `tailwindcss`: 3.4.1 (styling)
+- `next`: ^16.2.3 (framework, App Router, Server Actions)
+- `react`: ^18.3.1 (UI)
+- `@supabase/supabase-js`: ^2.39.0 (database + auth)
+- `@supabase/ssr`: ^0.10.2 (server-side auth)
+- `@anthropic-ai/sdk`: ^0.24.0 (Claude Vision API)
+- `@sentry/nextjs`: ^10.48.0 (error tracking + session replay)
+- `zod`: ^4.3.6 (schema validation)
+- `tailwindcss`: ^3.4.1 (styling)
 
 ## Before Committing
 

@@ -254,31 +254,45 @@ Fast development, consistent design, accessibility-first utilities.
 
 ## Project Roadmap
 
-### ✅ Completed (Steps 1-4)
-- Home page with branding
-- Magic link authentication
-- Protected app routes
-- File upload (PDF/image)
-- Dark mode UI with brand colors
-- Accessibility standards
-- 18 passing tests
-- Code standards documentation
+### ✅ MVP Complete (Steps 1-7)
 
-### 🔄 In Progress (Step 5)
-- Claude API extraction
-- Product data JSON parsing
-- Review page for editing
+**Step 1-2: Auth & Upload** ✅
+- Magic link authentication (PKCE + cookies)
+- File upload form (PDF/images, drag-and-drop)
 
-### 📅 Upcoming (Steps 6-7)
-- Review & edit flow
-- Shopify CSV export
+**Step 3-4: Extraction** ✅
+- Claude Vision API integration
+- Product data extraction + JSON parsing
+- Rate limiting (10/hour per user)
+
+**Step 5-6: Review** ✅
+- Edit extracted product data
+- Form validation
+- Server-side ownership checks
+
+**Step 7: Export** ✅
+- CSV generation (Shopify format)
+- Variant handling (sizes × colors)
 - Download functionality
 
-### 🚀 Future Features
-- Multi-product waves
-- History & exports
-- Shopify direct sync (later)
-- Team collaboration (later)
+**Production Features** ✅
+- Input validation (Zod schemas)
+- Error tracking (Sentry)
+- Environment validation
+- Cleanup scripts for orphaned files
+- 37 passing tests
+
+### 📊 Production Readiness: 8/10
+- Ready for closed beta on Vercel
+- Rate limiting: in-memory (OK for MVP, upgrade to Redis for public scale)
+- Sentry: wired up (set DSN to enable error tracking)
+
+### 🚀 Future Features (Post-MVP)
+- Multi-product batch processing
+- Redis rate limiting (for public scale)
+- Shopify direct API sync
+- Team collaboration
+- History & audit logs
 
 ## Questions?
 
