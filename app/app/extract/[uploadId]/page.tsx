@@ -46,38 +46,45 @@ export default function ExtractPage({ params }: { params: Promise<{ uploadId: st
   }, [uploadId, router])
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-light tracking-tight text-white mb-2">Extracting product data</h1>
-        <p className="text-slate-400">Upload ID: {uploadId}</p>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-2xl">
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl font-light tracking-tight text-white mb-3">Extracting product data</h1>
+          <p className="text-slate-500 text-sm">Upload ID: {uploadId}</p>
+        </div>
 
-      {isProcessing ? (
-        <div className="bg-gradient-to-b from-slate-900/50 to-slate-900/30 border border-slate-700 rounded-lg p-12 text-center">
-          <WaveLoader />
-          <p className="text-sm text-slate-500 mt-4">This usually takes 10-30 seconds</p>
-        </div>
-      ) : (
-        <div className="bg-red-900/30 border border-red-600 rounded-lg p-6">
-          <p className="text-red-300 font-medium mb-4">❌ {error}</p>
-          <button
-            onClick={() => {
-              setIsProcessing(true)
-              setError(null)
-              router.refresh()
-            }}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            Try Again
-          </button>
-          <button
-            onClick={() => router.push('/app/wave')}
-            className="ml-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            Back to Upload
-          </button>
-        </div>
-      )}
+        {isProcessing ? (
+          <div className="flex flex-col items-center">
+            <div className="mb-6">
+              <WaveLoader />
+            </div>
+            <p className="text-slate-400 text-center">Claude is cooking your data...</p>
+            <p className="text-sm text-slate-500 text-center mt-2">This usually takes 10-30 seconds</p>
+          </div>
+        ) : (
+          <div className="bg-red-900/30 border border-red-600 rounded-lg p-8 text-center">
+            <p className="text-red-300 font-medium mb-6">❌ {error}</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => {
+                  setIsProcessing(true)
+                  setError(null)
+                  router.refresh()
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => router.push('/app/wave')}
+                className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-lg transition-colors font-medium"
+              >
+                Back to Upload
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
