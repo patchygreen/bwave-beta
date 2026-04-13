@@ -197,6 +197,32 @@ Monitor in Supabase dashboard:
 
 ---
 
+## Maintenance & Cleanup
+
+### Storage Cleanup
+
+Periodically remove orphaned uploads (failed extractions, old files):
+
+```bash
+npm run cleanup
+```
+
+This script:
+1. Finds uploads older than 7 days with no associated extraction
+2. Deletes them from Supabase Storage
+3. Removes database records
+
+Run monthly or when storage usage grows.
+
+### Rate Limit Refunds
+
+When extraction fails (no product data returned):
+- Rate limit is refunded (user isn't penalized)
+- File stays in storage (user can retry)
+- Cleanup script removes very old files later
+
+---
+
 ## Monitoring Checklist
 
 ### Daily
@@ -212,6 +238,7 @@ Monitor in Supabase dashboard:
 ### Monthly
 - [ ] Review Anthropic API costs
 - [ ] Check database growth
+- [ ] Run `npm run cleanup` to remove old orphaned uploads
 - [ ] Backup Supabase (if using paid plan)
 
 ---
