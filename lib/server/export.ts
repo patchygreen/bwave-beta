@@ -73,7 +73,8 @@ export async function exportCSV(waveId: string): Promise<{ success: boolean; url
     const csvContent = productDataToShopifyCSV(productData)
 
     // 4. Upload CSV to storage
-    const handle = productData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    const titleStr = productData.title ?? 'untitled'
+    const handle = titleStr.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     const fileName = `${handle}-${Date.now()}.csv`
     const filePath = `${user.id}/${fileName}`
 
