@@ -43,7 +43,7 @@ export default function ExportPage() {
 
   if (state === 'loading') {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <WaveLoader />
       </div>
     )
@@ -51,7 +51,7 @@ export default function ExportPage() {
 
   if (state === 'error') {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="mb-10">
           <h1 className="text-4xl font-light tracking-tight text-white mb-2">Export Failed</h1>
           <p className="text-slate-400">Something went wrong while generating your CSV</p>
@@ -86,7 +86,7 @@ export default function ExportPage() {
 
   // Success state
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="w-full px-4 sm:px-6 lg:px-8">
       <div className="mb-10">
         <h1 className="text-4xl font-light tracking-tight text-white mb-2">Ready for Shopify 🎉</h1>
         <p className="text-slate-400">Your product data is ready to import</p>

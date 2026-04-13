@@ -122,7 +122,7 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="text-center py-12">
           <div className="animate-spin text-4xl mb-4">⏳</div>
           <p className="text-slate-300">Loading product data...</p>
@@ -133,7 +133,7 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
 
   if (error || !data) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="bg-red-900/30 border border-red-600 rounded-lg p-6 mb-4">
           <p className="text-red-300 mb-4">❌ {error || 'No data available'}</p>
           <button
@@ -148,7 +148,7 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-3xl font-light tracking-tight text-white mb-2">Review & Edit</h1>
         <p className="text-slate-400">Make any corrections before exporting to Shopify CSV</p>
