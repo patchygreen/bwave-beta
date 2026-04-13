@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { saveProductWave } from '@/lib/server/review'
 import { logger } from '@/lib/logger'
 import type { ProductData, ProductWave } from '@/lib/types'
 
@@ -94,23 +95,18 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
 
     setSaving(true)
     try {
-      logger.info('💾 review', 'Saving extracted data', { waveId: waveId })
+      logger.info('💾 review', 'Saving extracted data', { waveId })
 
-      const supabase = createClient()
+      // Use server action with ownership check
+      const result = await saveProductWave(waveId, data)
 
-      const { error: updateError } = await supabase
-        .from('product_waves')
-        .update({ extracted_data: data })
-        .eq('id', waveId)
-
-      if (updateError) {
-        logger.error('💾 review', 'Failed to save', new Error(updateError.message))
-        setError('Failed to save changes')
+      if (!result.success) {
+        logger.error('💾 review', 'Failed to save', new Error(result.error || 'Unknown error'))
+        setError(result.error || 'Failed to save changes')
         return
       }
 
-      logger.info('✅ review', 'Data saved successfully, redirecting to export', { waveId: waveId })
-      // TODO: Redirect to export page once built
+      logger.info('✅ review', 'Data saved successfully, redirecting to export', { waveId })
       router.push(`/app/export/${waveId}`)
     } catch (err) {
       logger.error('💾 review', 'Error saving', err instanceof Error ? err : new Error(String(err)))

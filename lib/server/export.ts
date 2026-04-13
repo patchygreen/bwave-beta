@@ -180,7 +180,8 @@ function productDataToShopifyCSV(data: ProductData): string {
   const rows: string[][] = [headers]
 
   // Generate handle from title (e.g., "T-Shirt" → "t-shirt")
-  const handle = data.title
+  const titleStr = data.title ?? 'untitled'
+  const handle = titleStr
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-')
@@ -196,9 +197,9 @@ function productDataToShopifyCSV(data: ProductData): string {
     for (const color of colors) {
       const row: string[] = [
         handle, // Handle
-        data.title, // Title
-        data.vendor, // Vendor
-        data.product_type, // Type
+        titleStr, // Title
+        data.vendor || '', // Vendor
+        data.product_type || '', // Type
         data.description || '', // Body (HTML)
         data.tags?.join(', ') || '', // Tags (comma-separated)
         'true', // Published

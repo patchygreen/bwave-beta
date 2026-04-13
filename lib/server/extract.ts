@@ -82,6 +82,7 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
     const serviceRoleClient = createServiceRoleClient()
     const isPdf = upload.file_type === 'pdf'
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let contentBlock: any
 
     if (isPdf) {
@@ -99,9 +100,9 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
       }
 
       contentBlock = {
-        type: 'document',
+        type: 'document' as const,
         source: {
-          type: 'url',
+          type: 'url' as const,
           url: signedUrlData.signedUrl,
         },
       }
