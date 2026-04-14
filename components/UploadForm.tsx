@@ -77,10 +77,10 @@ export default function UploadForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* File Input */}
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer focus-within:ring-2 focus-within:ring-bwave-blue focus-within:ring-offset-2 focus-within:ring-offset-black ${
+        className={`border-2 border-dashed rounded-xl p-10 text-center transition-all cursor-pointer group ${
           isDragging
-            ? 'border-bwave-cyan bg-bwave-cyan/20 shadow-lg shadow-bwave-cyan/30'
-            : 'border-bwave-blue/40 hover:border-bwave-blue/60 bg-gradient-to-br from-bwave-blue/10 to-bwave-cyan/10'
+            ? 'border-bwave-cyan bg-bwave-cyan/20 shadow-lg shadow-bwave-cyan/40 scale-105'
+            : 'border-slate-600 hover:border-bwave-blue/80 hover:bg-bwave-blue/5 bg-slate-800/30'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -99,20 +99,27 @@ export default function UploadForm() {
         />
 
         <label htmlFor="file-input" className="cursor-pointer block">
-          <div className={`text-4xl mb-2 transition-transform ${isDragging ? 'scale-110' : ''}`} aria-hidden="true">
-            {isDragging ? '⬇️' : '📄'}
+          <div className={`text-5xl mb-4 transition-all duration-300 ${isDragging ? 'scale-125 -translate-y-1' : 'group-hover:scale-110'}`} aria-hidden="true">
+            {isDragging ? '⬇️' : '📦'}
           </div>
-          <p className="text-white font-medium mb-1">
+
+          <p className="text-lg font-semibold text-white mb-2">
             {isDragging
               ? 'Drop your file here'
               : fileName
-              ? `Selected: ${fileName}`
-              : 'Click to upload or drag and drop'}
+              ? `✓ ${fileName}`
+              : 'Upload your supplier file'}
           </p>
-          <p id="file-description" className="text-sm text-slate-400">
-            PDF or image (PNG, JPG, WebP)
+
+          <p id="file-description" className="text-sm text-slate-400 mb-3">
+            Drag and drop, or <span className="text-bwave-blue font-medium hover:text-bwave-cyan">choose a file</span>
           </p>
-          <p className="text-xs text-slate-500 mt-2">Max 10MB</p>
+
+          <div className="flex gap-4 justify-center text-xs text-slate-500 pt-3 border-t border-slate-700/50">
+            <span>PDF, PNG, JPG, WebP</span>
+            <span>•</span>
+            <span>Up to 10MB</span>
+          </div>
         </label>
       </div>
 
@@ -120,20 +127,38 @@ export default function UploadForm() {
       {error && (
         <div
           role="alert"
-          className="p-3 bg-red-900/30 border border-red-600 rounded-lg text-sm text-red-300"
+          className="p-4 bg-red-900/30 border border-red-600 rounded-lg text-sm text-red-300 flex items-start gap-3"
         >
-          {error}
+          <span className="text-lg flex-shrink-0">⚠️</span>
+          <span>{error}</span>
         </div>
       )}
 
-      {/* Submit Button - using brand blue with glow effect */}
+      {/* File Selected State */}
+      {fileName && !error && (
+        <div className="p-4 bg-bwave-blue/10 border border-bwave-blue/50 rounded-lg text-sm text-bwave-blue flex items-start gap-3">
+          <span className="text-lg flex-shrink-0">✓</span>
+          <span><strong>Ready to go!</strong> Click continue to extract product data</span>
+        </div>
+      )}
+
+      {/* Submit Button */}
       <button
         type="submit"
         disabled={loading || !fileName}
         aria-busy={loading}
-        className="w-full bg-bwave-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-bwave-cyan hover:shadow-lg hover:shadow-bwave-blue/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:ring-offset-2 focus:ring-offset-slate-900"
+        className="w-full bg-bwave-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-bwave-cyan disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl hover:shadow-bwave-blue/40 focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:ring-offset-2 focus:ring-offset-slate-900 active:scale-95"
       >
-        {loading ? 'Uploading...' : 'Continue'}
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="inline-block animate-spin">⏳</span>
+            Uploading...
+          </span>
+        ) : fileName ? (
+          'Continue → Extract Data'
+        ) : (
+          'Select a file to continue'
+        )}
       </button>
     </form>
   )

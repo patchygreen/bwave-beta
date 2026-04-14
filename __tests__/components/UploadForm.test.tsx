@@ -20,9 +20,9 @@ describe('UploadForm Component', () => {
     it('renders file upload form with instructions', () => {
       render(<UploadForm />)
 
-      expect(screen.getByText(/Click to upload or drag and drop/i)).toBeInTheDocument()
-      expect(screen.getByText(/PDF or image/i)).toBeInTheDocument()
-      expect(screen.getByText(/Max 10MB/i)).toBeInTheDocument()
+      expect(screen.getByText(/Upload your supplier file/i)).toBeInTheDocument()
+      expect(screen.getByText(/choose a file/i)).toBeInTheDocument()
+      expect(screen.getByText(/Up to 10MB/i)).toBeInTheDocument()
     })
 
     it('renders accessible file input with label', () => {
@@ -86,7 +86,7 @@ describe('UploadForm Component', () => {
       fireEvent.change(fileInput, { target: { files: [file] } })
 
       await waitFor(() => {
-        expect(screen.getByText(/Selected: product.pdf/i)).toBeInTheDocument()
+        expect(screen.getByText(/product.pdf/i)).toBeInTheDocument()
       })
     })
 
