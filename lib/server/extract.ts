@@ -174,9 +174,9 @@ JSON schema to follow (return as object for single product, or array of objects 
   "description": "Full product description, specifications, features",
   "price": "Regular selling price",
   "compare_at_price": "Original/compare-at price if on sale",
-  "sizes": ["array", "of", "available", "sizes"],
-  "colors": ["array", "of", "available", "colors"],
-  "quantities": { "size": quantity_number, "example": "S: 10, M: 5, L: 3" },
+  "sizes": ["XXS", "XS", "S", "M", "L", "XL", "XXL"],
+  "colors": ["color1", "color2"],
+  "quantities": {"XXS": 2, "XS": 4, "S": 4, "M": 4, "L": 3},
   "materials": "Material composition and details",
   "care_instructions": "Washing, care, and maintenance instructions",
   "size_fit": "Sizing guidance, fit notes, measurement chart references",
@@ -188,7 +188,7 @@ Rules:
 - If multiple products: return JSON array of objects
 - If single product: return JSON object (NOT in an array)
 - If a field is not present in the document, omit it or use null
-- For quantities: extract per-size inventory counts from tables/lists and return as object { "size": number }
+- For quantities: CRITICAL - extract per-size inventory counts from tables. Look for quantity columns aligned with each size. Return as JSON object where key is size and value is the number. Example: if table shows XXS:2, XS:4, S:4, M:4, L:3 then return {"XXS": 2, "XS": 4, "S": 4, "M": 4, "L": 3}
 - For images: if the document has embedded images, describe them in a way that could be used as image alt text
 - For arrays: return as arrays, not comma-separated strings
 - Do not include any markdown formatting or code blocks
