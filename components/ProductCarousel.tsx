@@ -250,12 +250,17 @@ function ProductReviewForm({
           <label className="block text-sm font-medium text-slate-300 mb-2">📏 Sizes & Stock</label>
           {Array.isArray(data.sizes) && data.sizes.length > 0 ? (
             <div className="space-y-2">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm border-collapse" style={{ tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: '50%' }} />
+                  <col style={{ width: '35%' }} />
+                  <col style={{ width: '15%' }} />
+                </colgroup>
                 <thead>
                   <tr className="text-xs font-medium text-slate-400 border-b border-slate-700">
                     <th className="text-left py-2 px-2">Size</th>
-                    <th className="text-center py-2 px-2 w-20">Stock</th>
-                    <th className="text-right py-2 px-2 w-8"></th>
+                    <th className="text-center py-2 px-2">Stock</th>
+                    <th className="text-right py-2 px-2"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700">
