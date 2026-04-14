@@ -185,19 +185,26 @@ JSON schema to follow (return as object for single product, or array of objects 
 }
 
 Rules:
-- If multiple products: return JSON array of objects
+- CRITICAL: Group size variants into ONE product. Do NOT create separate products for each size.
+  * If you see NE7124-L, NE7124-M, NE7124-S → That is ONE product "MYRTIA DRESS" with sizes [L, M, S]
+  * Do NOT extract as 3 separate products
+- If multiple products: return JSON array of objects (e.g., NE7124 product AND NE7135 product)
 - If single product: return JSON object (NOT in an array)
 - If a field is not present in the document, omit it or use null
-- For quantities: CRITICAL - Extract per-size inventory/stock quantities from supplier documents. Quantities can appear in different formats:
-  FORMAT 1 - Invoice/Order style (each size is a separate line item):
-  * Product codes like "NE7124-L", "NE7124-M", "NE7124-S" where the last letter is the SIZE
-  * The Quantity column shows how many of that size: NE7124-L qty 4 = size L has 4 units
-  * Extract the SIZE letter from the code, use the Quantity value: {"L": 4, "M": 5, "S": 4}
-  FORMAT 2 - Catalog style (sizes in row/columns):
-  * Table row: "XXS: 2 | XS: 4 | S: 4" → return {"XXS": 2, "XS": 4, "S": 4}
-  * Table columns: Size row shows "L M S" and Quantity row shows "4 5 4" → return {"L": 4, "M": 5, "S": 4}
-  * Include EVERY size that has a corresponding quantity number
-  * Return as object {"size_label": number_value}
+- For quantities: CRITICAL - Extract per-size inventory quantities. This is ESSENTIAL for accurate inventory tracking.
+  STEP 1: Look for product codes with size suffixes (e.g., NE7124-L, NE7124-M, NE7124-S)
+  STEP 2: The letter AFTER the dash is the SIZE (L = Large, M = Medium, S = Small, XL = Extra Large, etc.)
+  STEP 3: Find the Quantity column value for that line - that's the stock for that size
+  STEP 4: Build quantities object mapping each size to its quantity
+
+  EXAMPLE from invoice:
+  Line 1: Code "NE7124-L", Description "MYRTIA DRESS", Quantity "4" → size L has 4 units
+  Line 2: Code "NE7124-M", Description "MYRTIA DRESS", Quantity "5" → size M has 5 units
+  Line 3: Code "NE7124-S", Description "MYRTIA DRESS", Quantity "4" → size S has 4 units
+  Result for product "MYRTIA DRESS": sizes ["L", "M", "S"], quantities {"L": 4, "M": 5, "S": 4}
+
+  IMPORTANT: Group all variants by base product code. NE7124-L, NE7124-M, NE7124-S = ONE product with 3 sizes.
+  Return quantities as {"size_letter": quantity_number} object.
 - For images: if the document has embedded images, describe them in a way that could be used as image alt text
 - For arrays: return as arrays, not comma-separated strings
 - Do not include any markdown formatting or code blocks
