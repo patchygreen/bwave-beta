@@ -188,11 +188,14 @@ Rules:
 - If multiple products: return JSON array of objects
 - If single product: return JSON object (NOT in an array)
 - If a field is not present in the document, omit it or use null
-- For quantities: CRITICAL - Look for quantity/stock numbers in tables or product rows. Match each size to its quantity number. Return as {"size": number}. Examples:
-  * If you see a table row like "XXS: 2 | XS: 4 | S: 4 | M: 4 | L: 3" → return {"XXS": 2, "XS": 4, "S": 4, "M": 4, "L": 3}
-  * If you see "S 4 M 4 L 3" in a row → the numbers are quantities for each size
-  * Only include sizes that have a corresponding quantity number
-  * If no quantities found, omit this field
+- For quantities: CRITICAL - Extract per-size inventory/stock quantities from supplier tables. The quantities are usually in a row aligned with size columns.
+  IMPORTANT: Match each size label (XXS, XS, S, M, L, XL, XXL) to its quantity number in the same row/column.
+  Examples of how quantities appear:
+  * Table row: "XXS: 2 | XS: 4 | S: 4 | M: 4 | L: 3" → return {"XXS": 2, "XS": 4, "S": 4, "M": 4, "L": 3}
+  * Table columns: Size row shows "XXS XS S M L XL XXL" and Quantity row shows "2 4 4 4 3" → map positions: {"XXS": 2, "XS": 4, "S": 4, "M": 4, "L": 3}
+  * If you see numeric values under each size in a table → those are the quantities for that size
+  * Include EVERY size that has a corresponding number
+  * Return as object {"size_label": number_value}
 - For images: if the document has embedded images, describe them in a way that could be used as image alt text
 - For arrays: return as arrays, not comma-separated strings
 - Do not include any markdown formatting or code blocks
