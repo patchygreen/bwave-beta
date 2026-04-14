@@ -247,60 +247,70 @@ function ProductReviewForm({
       {/* Sizes & Colors */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-3">📏 Sizes & Stock</label>
-          <div className="space-y-2">
-            {Array.isArray(data.sizes) && data.sizes.length > 0 ? (
-              <>
-                <div className="bg-slate-800/30 rounded-lg border border-slate-700 overflow-hidden">
-                  <div className="grid grid-cols-3 gap-0 text-xs font-medium text-slate-400 bg-slate-900/50 px-3 py-2 border-b border-slate-700">
-                    <div>Size</div>
-                    <div className="text-center">Stock</div>
-                    <div className="text-right">Action</div>
-                  </div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">📏 Sizes & Stock</label>
+          {Array.isArray(data.sizes) && data.sizes.length > 0 ? (
+            <div className="space-y-2">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs font-medium text-slate-400 border-b border-slate-700">
+                    <th className="text-left py-2 px-2">Size</th>
+                    <th className="text-center py-2 px-2 w-20">Stock</th>
+                    <th className="text-right py-2 px-2 w-8"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700">
                   {data.sizes.map((size, idx) => (
-                    <div key={idx} className="grid grid-cols-3 gap-0 items-center px-3 py-2 border-b border-slate-700/50 last:border-b-0 hover:bg-slate-800/40 transition-all">
-                      <input
-                        type="text"
-                        value={size}
-                        onChange={(e) => handleArrayChange('sizes', idx, e.target.value)}
-                        className="bg-transparent text-white text-sm focus:outline-none focus:text-bwave-blue"
-                      />
-                      <input
-                        type="number"
-                        min="0"
-                        value={data.quantities?.[size] ?? ''}
-                        onChange={(e) => {
-                          const newQuantities = { ...data.quantities, [size]: parseInt(e.target.value) || 0 }
-                          handleChange('quantities', newQuantities)
-                        }}
-                        className="bg-transparent text-white text-sm text-center focus:outline-none focus:text-bwave-blue font-medium"
-                        placeholder="0"
-                      />
-                      <button
-                        onClick={() => removeArrayItem('sizes', idx)}
-                        className="text-right text-slate-500 hover:text-red-400 transition-all active:scale-95 text-xs font-medium"
-                      >
-                        ✕
-                      </button>
-                    </div>
+                    <tr key={idx} className="hover:bg-slate-800/30 transition-all">
+                      <td className="py-1.5 px-2">
+                        <input
+                          type="text"
+                          value={size}
+                          onChange={(e) => handleArrayChange('sizes', idx, e.target.value)}
+                          className="bg-transparent text-white text-sm focus:outline-none focus:text-bwave-blue w-full"
+                        />
+                      </td>
+                      <td className="py-1.5 px-2">
+                        <input
+                          type="number"
+                          min="0"
+                          value={data.quantities?.[size] ?? ''}
+                          onChange={(e) => {
+                            const newQuantities = { ...data.quantities, [size]: parseInt(e.target.value) || 0 }
+                            handleChange('quantities', newQuantities)
+                          }}
+                          className="bg-transparent text-white text-sm text-center focus:outline-none focus:text-bwave-blue font-medium w-full"
+                          placeholder="0"
+                        />
+                      </td>
+                      <td className="py-1.5 px-2 text-right">
+                        <button
+                          onClick={() => removeArrayItem('sizes', idx)}
+                          className="text-slate-500 hover:text-red-400 transition-all active:scale-95 text-xs font-bold"
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
                   ))}
-                  <div className="grid grid-cols-3 gap-0 items-center px-3 py-2 bg-bwave-blue/10 border-t border-slate-700 font-medium text-bwave-blue text-sm">
-                    <div>Total</div>
-                    <div className="text-center">
+                  <tr className="bg-bwave-blue/10 font-medium text-bwave-blue border-t border-slate-600">
+                    <td className="py-2 px-2">Total</td>
+                    <td className="py-2 px-2 text-center">
                       {Object.values(data.quantities || {}).reduce((a, b) => a + (b || 0), 0)}
-                    </div>
-                    <div />
-                  </div>
-                </div>
-              </>
-            ) : null}
-            <button
-              onClick={() => addArrayItem('sizes')}
-              className="w-full text-sm text-bwave-blue hover:text-bwave-cyan px-3 py-2 rounded transition-all duration-200 hover:bg-bwave-blue/10 active:scale-95"
-            >
-              + Add Size
-            </button>
-          </div>
+                    </td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+              <button
+                onClick={() => addArrayItem('sizes')}
+                className="w-full text-sm text-bwave-blue hover:text-bwave-cyan px-3 py-2 rounded transition-all duration-200 hover:bg-bwave-blue/10 active:scale-95"
+              >
+                + Add Size
+              </button>
+            </div>
+          ) : (
+            <div className="text-sm text-slate-500 py-4 text-center">No sizes added</div>
+          )}
         </div>
 
         <div>
