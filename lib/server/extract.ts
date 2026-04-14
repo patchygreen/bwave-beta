@@ -188,13 +188,15 @@ Rules:
 - If multiple products: return JSON array of objects
 - If single product: return JSON object (NOT in an array)
 - If a field is not present in the document, omit it or use null
-- For quantities: CRITICAL - Extract per-size inventory/stock quantities from supplier tables. The quantities are usually in a row aligned with size columns.
-  IMPORTANT: Match each size label (XXS, XS, S, M, L, XL, XXL) to its quantity number in the same row/column.
-  Examples of how quantities appear:
-  * Table row: "XXS: 2 | XS: 4 | S: 4 | M: 4 | L: 3" → return {"XXS": 2, "XS": 4, "S": 4, "M": 4, "L": 3}
-  * Table columns: Size row shows "XXS XS S M L XL XXL" and Quantity row shows "2 4 4 4 3" → map positions: {"XXS": 2, "XS": 4, "S": 4, "M": 4, "L": 3}
-  * If you see numeric values under each size in a table → those are the quantities for that size
-  * Include EVERY size that has a corresponding number
+- For quantities: CRITICAL - Extract per-size inventory/stock quantities from supplier documents. Quantities can appear in different formats:
+  FORMAT 1 - Invoice/Order style (each size is a separate line item):
+  * Product codes like "NE7124-L", "NE7124-M", "NE7124-S" where the last letter is the SIZE
+  * The Quantity column shows how many of that size: NE7124-L qty 4 = size L has 4 units
+  * Extract the SIZE letter from the code, use the Quantity value: {"L": 4, "M": 5, "S": 4}
+  FORMAT 2 - Catalog style (sizes in row/columns):
+  * Table row: "XXS: 2 | XS: 4 | S: 4" → return {"XXS": 2, "XS": 4, "S": 4}
+  * Table columns: Size row shows "L M S" and Quantity row shows "4 5 4" → return {"L": 4, "M": 5, "S": 4}
+  * Include EVERY size that has a corresponding quantity number
   * Return as object {"size_label": number_value}
 - For images: if the document has embedded images, describe them in a way that could be used as image alt text
 - For arrays: return as arrays, not comma-separated strings
