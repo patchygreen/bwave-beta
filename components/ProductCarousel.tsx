@@ -282,11 +282,11 @@ function ProductReviewForm({
                           const newQuantities = { ...data.quantities, [size]: parseInt(e.target.value) || 0 }
                           handleChange('quantities', newQuantities)
                         }}
-                        className="w-full bg-slate-900/60 border border-slate-600 text-bwave-blue text-sm text-center font-bold px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-transparent transition-all placeholder:text-slate-600"
+                        className="w-full bg-slate-900/60 border border-slate-600 text-slate-300 text-sm text-center font-bold px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-transparent transition-all placeholder:text-slate-600"
                         placeholder="0"
                       />
                       {(data.quantities?.[size] || 0) > 0 && (
-                        <div className="absolute inset-0 rounded-md bg-bwave-blue/5 pointer-events-none blur-sm" />
+                        <div className="absolute inset-0 rounded-md bg-bwave-blue/20 pointer-events-none" />
                       )}
                     </div>
                   </div>

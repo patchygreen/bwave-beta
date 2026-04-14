@@ -188,7 +188,11 @@ Rules:
 - If multiple products: return JSON array of objects
 - If single product: return JSON object (NOT in an array)
 - If a field is not present in the document, omit it or use null
-- For quantities: CRITICAL - extract per-size inventory counts from tables. Look for quantity columns aligned with each size. Return as JSON object where key is size and value is the number. Example: if table shows XXS:2, XS:4, S:4, M:4, L:3 then return {"XXS": 2, "XS": 4, "S": 4, "M": 4, "L": 3}
+- For quantities: CRITICAL - Look for quantity/stock numbers in tables or product rows. Match each size to its quantity number. Return as {"size": number}. Examples:
+  * If you see a table row like "XXS: 2 | XS: 4 | S: 4 | M: 4 | L: 3" → return {"XXS": 2, "XS": 4, "S": 4, "M": 4, "L": 3}
+  * If you see "S 4 M 4 L 3" in a row → the numbers are quantities for each size
+  * Only include sizes that have a corresponding quantity number
+  * If no quantities found, omit this field
 - For images: if the document has embedded images, describe them in a way that could be used as image alt text
 - For arrays: return as arrays, not comma-separated strings
 - Do not include any markdown formatting or code blocks
