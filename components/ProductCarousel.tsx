@@ -266,7 +266,7 @@ function ProductReviewForm({
                           type="text"
                           value={size}
                           onChange={(e) => handleArrayChange('sizes', idx, e.target.value)}
-                          className="bg-transparent text-slate-300 text-sm focus:outline-none focus:text-bwave-blue w-full"
+                          className="bg-slate-900/50 border border-slate-700 text-slate-300 text-sm px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-bwave-blue w-full transition-all"
                         />
                       </td>
                       <td className="py-1.5 px-2">
@@ -278,7 +278,7 @@ function ProductReviewForm({
                             const newQuantities = { ...data.quantities, [size]: parseInt(e.target.value) || 0 }
                             handleChange('quantities', newQuantities)
                           }}
-                          className="bg-transparent text-slate-300 text-sm text-center focus:outline-none focus:text-bwave-blue font-medium w-full"
+                          className="bg-slate-900/50 border border-slate-700 text-slate-300 text-sm text-center px-2 py-1 rounded font-medium focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-bwave-blue w-full transition-all"
                           placeholder="0"
                         />
                       </td>
