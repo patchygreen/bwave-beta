@@ -51,11 +51,34 @@ export function ProductCarousel({ products, onUpdate, onAllReviewed }: ProductCa
 
   return (
     <div className="space-y-6">
-      {/* Progress bar */}
-      <div className="flex items-center justify-between">
+      {/* Top Navigation */}
+      <div className="flex items-center justify-between gap-4">
+        <button
+          onClick={scrollPrev}
+          disabled={!canScrollPrev}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 hover:shadow-md hover:shadow-bwave-blue/20 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 disabled:hover:shadow-none disabled:hover:bg-slate-800 active:scale-95"
+          aria-label="Previous product"
+        >
+          ← Prev
+        </button>
+
         <h2 className="text-lg font-medium text-white">
           Product {selectedIndex + 1} of {products.length}
         </h2>
+
+        <button
+          onClick={scrollNext}
+          disabled={!canScrollNext}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 hover:shadow-md hover:shadow-bwave-blue/20 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 disabled:hover:shadow-none disabled:hover:bg-slate-800 active:scale-95"
+          aria-label="Next product"
+        >
+          Next →
+        </button>
+      </div>
+
+      {/* Progress bar */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-slate-400">Progress</span>
         <div className="flex gap-2">
           {Array.from({ length: products.length }).map((_, i) => (
             <div
@@ -76,18 +99,12 @@ export function ProductCarousel({ products, onUpdate, onAllReviewed }: ProductCa
         {products.map((product, index) => (
           <div
             key={index}
-            className={`transition-all duration-300 ${
-              index === selectedIndex
-                ? 'opacity-100 visible'
-                : 'opacity-0 invisible absolute inset-0'
-            }`}
+            style={{ display: index === selectedIndex ? 'block' : 'none' }}
             role="tabpanel"
             aria-label={`Product ${index + 1}: ${product.title || 'Untitled'}`}
           >
             {/* Glow effect on visible slide */}
-            {index === selectedIndex && (
-              <div className="absolute inset-0 -z-10 bg-bwave-blue/10 blur-2xl rounded-lg pointer-events-none" />
-            )}
+            <div className="absolute inset-0 -z-10 bg-bwave-blue/10 blur-2xl rounded-lg pointer-events-none" />
             <ProductReviewForm
               product={product}
               index={index}
