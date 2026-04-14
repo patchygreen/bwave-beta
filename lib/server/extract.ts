@@ -162,11 +162,11 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
 
     const claudePrompt = `You are extracting product data from a supplier PDF or product image for import into Shopify.
 
-If the document contains multiple products, extract data for the FIRST/PRIMARY product only.
+If the document contains multiple products, extract data for ALL products.
 
-Extract ALL available fields from the document and return ONLY a valid JSON object (no markdown, no explanations, no array).
+Extract ALL available fields from the document and return ONLY valid JSON (no markdown, no explanations).
 
-JSON schema to follow:
+JSON schema to follow (return as object for single product, or array of objects for multiple):
 {
   "title": "Product name/title",
   "vendor": "Supplier/brand/vendor name",
@@ -184,7 +184,8 @@ JSON schema to follow:
 }
 
 Rules:
-- Return ONLY ONE JSON object, NOT an array
+- If multiple products: return JSON array of objects
+- If single product: return JSON object (NOT in an array)
 - If a field is not present in the document, omit it or use null
 - For images: if the document has embedded images, describe them in a way that could be used as image alt text
 - For arrays: return as arrays, not comma-separated strings
@@ -227,32 +228,46 @@ Rules:
       jsonString = jsonString.replace(/^```\n/, '').replace(/\n```$/, '')
     }
 
-    let extractedData: Partial<ProductData>
+    let extractedData: Partial<ProductData> | Partial<ProductData>[]
     try {
       let parsed = JSON.parse(jsonString)
       logger.debug('✅ extraction', 'JSON parsed successfully', { uploadId })
 
-      // Handle case where Claude returns array instead of object (multiple products)
-      // Take the first product if it's an array
+      // Handle case where Claude returns array of products (multi-product invoices)
       if (Array.isArray(parsed)) {
-        logger.warn('⚠️ extraction', 'Claude returned array, extracting first product', { uploadId, arrayLength: parsed.length })
+        logger.info('🌊 extraction', 'Multi-product extraction detected', { uploadId, productCount: parsed.length })
         if (parsed.length === 0) {
           return { success: false, error: 'No products found in document' }
         }
-        parsed = parsed[0]
-      }
 
-      // Validate Claude's response matches ProductData schema
-      const validation = validateProductDataSafe(parsed)
-      if (!validation.success) {
-        logger.error('📝 extraction', 'Claude response failed validation', new Error(validation.error || 'Invalid schema'), {
-          uploadId,
-          responsePreview: JSON.stringify(parsed).substring(0, 200),
-        })
-        return { success: false, error: 'Failed to validate extraction results' }
-      }
+        // Validate each product in the array
+        const validatedProducts: Partial<ProductData>[] = []
+        for (const product of parsed) {
+          const validation = validateProductDataSafe(product)
+          if (!validation.success) {
+            logger.warn('📝 extraction', 'Product failed validation, skipping', { error: validation.error })
+            continue
+          }
+          validatedProducts.push(validation.data || product)
+        }
 
-      extractedData = validation.data || parsed
+        if (validatedProducts.length === 0) {
+          return { success: false, error: 'No valid products found in document' }
+        }
+
+        extractedData = validatedProducts
+      } else {
+        // Single product case
+        const validation = validateProductDataSafe(parsed)
+        if (!validation.success) {
+          logger.error('📝 extraction', 'Claude response failed validation', new Error(validation.error || 'Invalid schema'), {
+            uploadId,
+            responsePreview: JSON.stringify(parsed).substring(0, 200),
+          })
+          return { success: false, error: 'Failed to validate extraction results' }
+        }
+        extractedData = validation.data || parsed
+      }
     } catch (parseError) {
       logger.error('❌ extraction', 'Failed to parse Claude response as JSON', parseError instanceof Error ? parseError : new Error(String(parseError)), {
         uploadId,
@@ -262,7 +277,8 @@ Rules:
     }
 
     // Check if extracted data is empty (no useful fields)
-    const hasData = Object.values(extractedData).some((val) => val && val !== '' && !Array.isArray(val) ? true : Array.isArray(val) && val.length > 0)
+    const dataArray = Array.isArray(extractedData) ? extractedData : [extractedData]
+    const hasData = dataArray.some(product => Object.values(product).some((val) => val && val !== '' && !Array.isArray(val) ? true : Array.isArray(val) && val.length > 0))
     if (!hasData) {
       logger.warn('⚠️ extraction', 'No product data extracted from file', { uploadId, fileName: upload.file_name })
 
@@ -294,10 +310,12 @@ Rules:
       return { success: false, error: 'Failed to save extraction results' }
     }
 
+    const productCount = Array.isArray(extractedData) ? extractedData.length : 1
     logger.info('✅ extraction', 'Extraction complete and stored', {
       uploadId,
       waveId: waveData.id,
       fileName: upload.file_name,
+      productCount,
     })
 
     timer.end({ success: true, waveId: waveData.id })
