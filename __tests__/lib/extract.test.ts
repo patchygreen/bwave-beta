@@ -321,7 +321,7 @@ describe('extractProducts', () => {
       expect(mockAnthropic.messages.create).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'claude-sonnet-4-6',
-          max_tokens: 2048,
+          max_tokens: 4096,
           messages: expect.arrayContaining([
             expect.objectContaining({
               role: 'user',
@@ -409,7 +409,7 @@ describe('extractProducts', () => {
       expect(mockAnthropic.messages.create).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'claude-sonnet-4-6',
-          max_tokens: 2048,
+          max_tokens: 4096,
           messages: expect.arrayContaining([
             expect.objectContaining({
               role: 'user',

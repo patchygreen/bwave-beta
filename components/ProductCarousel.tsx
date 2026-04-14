@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import useEmblaCarousel from 'embla-carousel-react'
+import { useEffect, useState } from 'react'
 import type { ProductData } from '@/lib/types'
 
 interface ProductCarouselProps {
@@ -11,55 +10,44 @@ interface ProductCarouselProps {
 }
 
 export function ProductCarousel({ products, onUpdate, onAllReviewed }: ProductCarouselProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [emblaRef, emblaApi] = useEmblaCarousel() as any
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [reviewedIndices, setReviewedIndices] = useState<Set<number>>(new Set())
-  const [canScrollPrev, setCanScrollPrev] = useState(false)
-  const [canScrollNext, setCanScrollNext] = useState(false)
 
-  // Update carousel state
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return
-    setSelectedIndex(emblaApi.selectedIndex())
-    setCanScrollPrev(emblaApi.canScrollPrev())
-    setCanScrollNext(emblaApi.canScrollNext())
-
-    // Mark as reviewed when viewing
-    setReviewedIndices((prev) => new Set(prev).add(emblaApi.selectedIndex()))
-  }, [emblaApi])
-
+  // Mark as reviewed when viewing
   useEffect(() => {
-    if (!emblaApi) return
-    onSelect()
-    emblaApi.on('select', onSelect)
-    return () => {
-      emblaApi.off('select', onSelect)
-    }
-  }, [emblaApi, onSelect])
+    setReviewedIndices((prev) => new Set(prev).add(selectedIndex))
+  }, [selectedIndex])
+
+  // Notify parent when all reviewed AND on last slide
+  useEffect(() => {
+    const isFullyReviewed = reviewedIndices.size === products.length && selectedIndex === products.length - 1
+    onAllReviewed(() => isFullyReviewed)
+  }, [reviewedIndices, selectedIndex, products.length, onAllReviewed])
+
+  const scrollPrev = () => {
+    if (selectedIndex > 0) setSelectedIndex(selectedIndex - 1)
+  }
+
+  const scrollNext = () => {
+    if (selectedIndex < products.length - 1) setSelectedIndex(selectedIndex + 1)
+  }
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
-        emblaApi?.scrollPrev()
+        scrollPrev()
       } else if (e.key === 'ArrowRight') {
-        emblaApi?.scrollNext()
+        scrollNext()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [emblaApi])
+  }, [selectedIndex, products.length])
 
-  const scrollPrev = () => emblaApi?.scrollPrev()
-  const scrollNext = () => emblaApi?.scrollNext()
-
-  const isFullyReviewed = reviewedIndices.size === products.length
-
-  // Notify parent when all products reviewed
-  useEffect(() => {
-    onAllReviewed(() => isFullyReviewed)
-  }, [isFullyReviewed, onAllReviewed])
+  const canScrollPrev = selectedIndex > 0
+  const canScrollNext = selectedIndex < products.length - 1
+  const isFullyReviewed = reviewedIndices.size === products.length && selectedIndex === products.length - 1
 
   return (
     <div className="space-y-6">
@@ -83,24 +71,30 @@ export function ProductCarousel({ products, onUpdate, onAllReviewed }: ProductCa
         </div>
       </div>
 
-      {/* Carousel container */}
-      <div className="overflow-hidden rounded-lg border border-slate-700 bg-gradient-to-br from-slate-900/50 to-slate-950/50" ref={emblaRef}>
-        <div className="flex">
-          {products.map((product, index) => (
-            <div
-              key={index}
-              className="min-w-0 flex-[0_0_100%]"
-              role="tabpanel"
-              aria-label={`Product ${index + 1}: ${product.title || 'Untitled'}`}
-            >
-              <ProductReviewForm
-                product={product}
-                index={index}
-                onUpdate={onUpdate}
-              />
-            </div>
-          ))}
-        </div>
+      {/* Carousel slides - only show current one */}
+      <div className="relative">
+        {products.map((product, index) => (
+          <div
+            key={index}
+            className={`transition-all duration-300 ${
+              index === selectedIndex
+                ? 'opacity-100 visible'
+                : 'opacity-0 invisible absolute inset-0'
+            }`}
+            role="tabpanel"
+            aria-label={`Product ${index + 1}: ${product.title || 'Untitled'}`}
+          >
+            {/* Glow effect on visible slide */}
+            {index === selectedIndex && (
+              <div className="absolute inset-0 -z-10 bg-bwave-blue/10 blur-2xl rounded-lg pointer-events-none" />
+            )}
+            <ProductReviewForm
+              product={product}
+              index={index}
+              onUpdate={onUpdate}
+            />
+          </div>
+        ))}
       </div>
 
       {/* Navigation */}

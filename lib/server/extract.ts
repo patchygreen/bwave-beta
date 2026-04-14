@@ -195,7 +195,7 @@ Rules:
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
+      max_tokens: 4096,
       messages: [
         {
           role: 'user',
@@ -227,6 +227,8 @@ Rules:
     } else if (jsonString.startsWith('```')) {
       jsonString = jsonString.replace(/^```\n/, '').replace(/\n```$/, '')
     }
+
+    logger.debug('🔍 extraction', 'Claude response (first 500 chars)', { responsePreview: jsonString.substring(0, 500) })
 
     let extractedData: Partial<ProductData> | Partial<ProductData>[]
     try {
