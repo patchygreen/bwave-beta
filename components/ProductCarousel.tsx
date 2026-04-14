@@ -266,7 +266,7 @@ function ProductReviewForm({
                           type="text"
                           value={size}
                           onChange={(e) => handleArrayChange('sizes', idx, e.target.value)}
-                          className="bg-transparent text-white text-sm focus:outline-none focus:text-bwave-blue w-full"
+                          className="bg-transparent text-slate-300 text-sm focus:outline-none focus:text-bwave-blue w-full"
                         />
                       </td>
                       <td className="py-1.5 px-2">
@@ -278,7 +278,7 @@ function ProductReviewForm({
                             const newQuantities = { ...data.quantities, [size]: parseInt(e.target.value) || 0 }
                             handleChange('quantities', newQuantities)
                           }}
-                          className="bg-transparent text-white text-sm text-center focus:outline-none focus:text-bwave-blue font-medium w-full"
+                          className="bg-transparent text-slate-300 text-sm text-center focus:outline-none focus:text-bwave-blue font-medium w-full"
                           placeholder="0"
                         />
                       </td>
