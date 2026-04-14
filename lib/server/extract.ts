@@ -247,6 +247,7 @@ Rules:
     }
 
     logger.debug('🔍 extraction', 'Claude response (first 500 chars)', { responsePreview: jsonString.substring(0, 500) })
+    logger.debug('🔍 extraction', 'Full Claude response for debugging', { fullResponse: jsonString })
 
     let extractedData: Partial<ProductData> | Partial<ProductData>[]
     try {
