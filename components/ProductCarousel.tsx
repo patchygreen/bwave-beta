@@ -247,74 +247,69 @@ function ProductReviewForm({
       {/* Sizes & Colors */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">📏 Sizes & Stock</label>
+          <div className="flex items-center justify-between mb-4">
+            <label className="block text-sm font-medium text-slate-300">📏 Sizes & Stock</label>
+            <div className="text-xs text-bwave-blue font-semibold">
+              Total: {Object.values(data.quantities || {}).reduce((a, b) => a + (b || 0), 0)}
+            </div>
+          </div>
           {Array.isArray(data.sizes) && data.sizes.length > 0 ? (
-            <div className="space-y-2">
-              <table className="w-full text-sm border-collapse" style={{ tableLayout: 'fixed' }}>
-                <colgroup>
-                  <col style={{ width: '50%' }} />
-                  <col style={{ width: '35%' }} />
-                  <col style={{ width: '15%' }} />
-                </colgroup>
-                <thead>
-                  <tr className="text-xs font-medium text-slate-400 border-b border-slate-700">
-                    <th className="text-left py-2 px-2">Size</th>
-                    <th className="text-center py-2 px-2">Stock</th>
-                    <th className="text-right py-2 px-2"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700">
-                  {data.sizes.map((size, idx) => (
-                    <tr key={idx} className="hover:bg-slate-800/30 transition-all">
-                      <td className="py-1.5 px-2">
-                        <input
-                          type="text"
-                          value={size}
-                          onChange={(e) => handleArrayChange('sizes', idx, e.target.value)}
-                          className="bg-slate-900/50 border border-slate-700 text-slate-300 text-sm px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-bwave-blue w-full transition-all"
-                        />
-                      </td>
-                      <td className="py-1.5 px-2">
-                        <input
-                          type="number"
-                          min="0"
-                          value={data.quantities?.[size] ?? ''}
-                          onChange={(e) => {
-                            const newQuantities = { ...data.quantities, [size]: parseInt(e.target.value) || 0 }
-                            handleChange('quantities', newQuantities)
-                          }}
-                          className="bg-slate-900/50 border border-slate-700 text-slate-300 text-sm text-center px-2 py-1 rounded font-medium focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-bwave-blue w-full transition-all"
-                          placeholder="0"
-                        />
-                      </td>
-                      <td className="py-1.5 px-2 text-right">
-                        <button
-                          onClick={() => removeArrayItem('sizes', idx)}
-                          className="text-slate-500 hover:text-red-400 transition-all active:scale-95 text-xs font-bold"
-                        >
-                          ✕
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="bg-bwave-blue/10 font-medium text-bwave-blue border-t border-slate-600">
-                    <td className="py-2 px-2">Total</td>
-                    <td className="py-2 px-2 text-center">
-                      {Object.values(data.quantities || {}).reduce((a, b) => a + (b || 0), 0)}
-                    </td>
-                    <td></td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="space-y-3">
+              {data.sizes.map((size, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-slate-800/40 to-slate-800/20 border border-slate-700 hover:border-slate-600 rounded-lg transition-all group"
+                >
+                  {/* Size badge */}
+                  <div className="flex-shrink-0">
+                    <input
+                      type="text"
+                      value={size}
+                      onChange={(e) => handleArrayChange('sizes', idx, e.target.value)}
+                      className="w-16 text-center bg-slate-900/60 border border-slate-600 text-slate-300 text-sm font-semibold px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-transparent transition-all"
+                    />
+                  </div>
+
+                  {/* Stock input */}
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="text-xs text-slate-500 font-medium">Stock:</span>
+                    <div className="relative flex-1 max-w-xs">
+                      <input
+                        type="number"
+                        min="0"
+                        value={data.quantities?.[size] ?? ''}
+                        onChange={(e) => {
+                          const newQuantities = { ...data.quantities, [size]: parseInt(e.target.value) || 0 }
+                          handleChange('quantities', newQuantities)
+                        }}
+                        className="w-full bg-slate-900/60 border border-slate-600 text-bwave-blue text-sm text-center font-bold px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-transparent transition-all placeholder:text-slate-600"
+                        placeholder="0"
+                      />
+                      {(data.quantities?.[size] || 0) > 0 && (
+                        <div className="absolute inset-0 rounded-md bg-bwave-blue/5 pointer-events-none blur-sm" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Delete button */}
+                  <button
+                    onClick={() => removeArrayItem('sizes', idx)}
+                    className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition-all active:scale-95 text-sm font-bold p-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+
               <button
                 onClick={() => addArrayItem('sizes')}
-                className="w-full text-sm text-bwave-blue hover:text-bwave-cyan px-3 py-2 rounded transition-all duration-200 hover:bg-bwave-blue/10 active:scale-95"
+                className="w-full text-sm text-bwave-blue hover:text-bwave-cyan font-medium px-4 py-3 rounded-lg transition-all duration-200 hover:bg-bwave-blue/10 border border-dashed border-slate-600 hover:border-bwave-blue/50 active:scale-95"
               >
                 + Add Size
               </button>
             </div>
           ) : (
-            <div className="text-sm text-slate-500 py-4 text-center">No sizes added</div>
+            <div className="text-sm text-slate-500 py-6 text-center border border-dashed border-slate-700 rounded-lg">No sizes added</div>
           )}
         </div>
 
