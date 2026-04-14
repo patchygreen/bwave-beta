@@ -266,7 +266,7 @@ function ProductReviewForm({
                       type="text"
                       value={size}
                       onChange={(e) => handleArrayChange('sizes', idx, e.target.value)}
-                      className="w-16 text-center bg-slate-900/60 border border-slate-600 text-slate-300 text-sm font-semibold px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-transparent transition-all"
+                      className="w-16 text-center bg-slate-800 border border-slate-600 text-slate-300 text-sm font-semibold px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-bwave-blue transition-all hover:border-slate-500"
                     />
                   </div>
 
@@ -282,7 +282,7 @@ function ProductReviewForm({
                           const newQuantities = { ...data.quantities, [size]: parseInt(e.target.value) || 0 }
                           handleChange('quantities', newQuantities)
                         }}
-                        className="w-full bg-slate-900/60 border border-slate-600 text-slate-300 text-sm text-center font-bold px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-transparent transition-all placeholder:text-slate-600"
+                        className="w-full bg-slate-800 border border-slate-600 text-slate-300 text-sm text-center font-bold px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-bwave-blue transition-all hover:border-slate-500 placeholder:text-slate-600"
                         placeholder="0"
                       />
                       {(data.quantities?.[size] || 0) > 0 && (
