@@ -162,7 +162,9 @@ export async function extractProducts(uploadId: string): Promise<{ success: bool
 
     const claudePrompt = `You are extracting product data from a supplier PDF or product image for import into Shopify.
 
-Extract ALL available fields from the document and return ONLY a valid JSON object (no markdown, no explanations).
+If the document contains multiple products, extract data for the FIRST/PRIMARY product only.
+
+Extract ALL available fields from the document and return ONLY a valid JSON object (no markdown, no explanations, no array).
 
 JSON schema to follow:
 {
@@ -182,7 +184,7 @@ JSON schema to follow:
 }
 
 Rules:
-- Return ONLY the JSON object, nothing else
+- Return ONLY ONE JSON object, NOT an array
 - If a field is not present in the document, omit it or use null
 - For images: if the document has embedded images, describe them in a way that could be used as image alt text
 - For arrays: return as arrays, not comma-separated strings
@@ -227,8 +229,18 @@ Rules:
 
     let extractedData: Partial<ProductData>
     try {
-      const parsed = JSON.parse(jsonString)
+      let parsed = JSON.parse(jsonString)
       logger.debug('✅ extraction', 'JSON parsed successfully', { uploadId })
+
+      // Handle case where Claude returns array instead of object (multiple products)
+      // Take the first product if it's an array
+      if (Array.isArray(parsed)) {
+        logger.warn('⚠️ extraction', 'Claude returned array, extracting first product', { uploadId, arrayLength: parsed.length })
+        if (parsed.length === 0) {
+          return { success: false, error: 'No products found in document' }
+        }
+        parsed = parsed[0]
+      }
 
       // Validate Claude's response matches ProductData schema
       const validation = validateProductDataSafe(parsed)
