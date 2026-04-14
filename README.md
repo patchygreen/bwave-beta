@@ -2,9 +2,11 @@
 
 Convert supplier PDFs and images into Shopify-ready product CSVs using AI extraction.
 
-**Status:** ✅ MVP Complete – Production Ready (8/10)
-- All 7 steps implemented (upload → extract → review → export)
+**Status:** ✅ MVP Complete – Production Ready (8.5/10)
+- All 7 steps fully implemented (upload → extract → review → export)
+- Multi-product carousel with Embla for slick, accessible carousel navigation
 - Input validation, error tracking, rate limiting
+- 32 tests passing, comprehensive a11y support
 - Ready for closed beta on Vercel
 
 ## Tech Stack
@@ -57,8 +59,9 @@ lib/
      └── schemas.ts           # Zod validation schemas
 
 components/
-  ├── WaveLoader.tsx          # Animated wave loader
+  ├── WaveLoader.tsx          # Animated wave loader with funny messages
   ├── UploadForm.tsx          # Drag-and-drop file upload
+  ├── ProductCarousel.tsx     # Embla carousel for multi-product review
   ├── SentryProvider.tsx      # Sentry client-side wrapper
   └── SignOutButton.tsx       # Sign out button
 
@@ -144,14 +147,22 @@ See `EXTRACTION.md` for detailed Claude integration docs.
 
 **Test:** `/app/wave` → upload PDF → watch WaveLoader → auto-redirect ✓
 
-### ✅ Step 6: Review & Edit
-- Beautiful dark-themed form to review extracted data
+### ✅ Step 6: Review & Edit with Multi-Product Carousel
+- **Single Product:** Beautiful dark-themed form to review extracted data
+- **Multi-Product:** Embla carousel with smooth scrolling, keyboard navigation (arrow keys), progress tracking
 - Edit all ProductData fields inline
 - Manage arrays (sizes, colors, tags) with +/- buttons
+- Progress bar shows which products reviewed, prevents export until all reviewed
 - Save changes back to database
 - Links to export page for Step 7
 
-**Test:** Go to `/app/review/[waveId]` → edit fields → click "Confirm & Export" ✓
+**Key Features:**
+- 🎠 **Embla Carousel** — Slick, accessible carousel for multi-product invoices
+- ⌨️ **Keyboard Navigation** — Arrow keys to swipe between products
+- 🟦 **Blue Glow Effects** — Brand colors with smooth transitions
+- ♿ **Full a11y** — ARIA labels, keyboard support, screen reader friendly
+
+**Test:** Upload Jane Lushka invoice → carousel shows products → keyboard navigation works ✓
 
 ### ✅ Dashboard Upgrades
 - 📊 Stats cards (Total Uploads, Extracted, Exports)
@@ -185,7 +196,9 @@ npm test -- --coverage
 - ✅ Upload validation (file type, size, auth)
 - ✅ Upload form component (rendering, state, a11y)
 - ✅ Extraction flow (Claude API mocking, JSON parsing, DB storage)
-- Total: 20+ tests passing
+- ✅ Export flow (CSV generation, storage upload, signed URLs)
+- ✅ Review & save operations
+- Total: 32 tests passing, 0 failing
 
 Tests auto-run on commit via Husky.
 
@@ -231,14 +244,26 @@ Perfect for log aggregation services (Datadog, Sentry, etc.).
 - Lazy loading on dashboard
 - Minimal JavaScript (server components where possible)
 
-## Next Steps: Step 7 - CSV Export
+### ✅ Step 7: CSV Export to Shopify
+- Converts ProductData → Shopify-compatible CSV format
+- Handles product variants (size × color combinations)
+- Auto-generates product handle from title
+- Uploads CSV to Supabase Storage
+- Creates audit record in `csv_exports` table
+- Provides signed download URL (1-hour expiry)
+- Full rate limiting (50 exports/hour per user)
 
-Will add:
-1. Format extracted data as Shopify CSV (headers: handle, title, vendor, price, etc.)
-2. Generate CSV file
-3. Upload to Supabase Storage
-4. Provide download link to user
-5. Track exports in `csv_exports` table
+**CSV Columns:** Handle, Title, Vendor, Type, Body (HTML), Tags, Published, Price, Compare At Price, Option1 Name/Value, Option2 Name/Value
+
+**Test:** Review page → "Confirm & Export" → download CSV → open in Excel ✓
+
+## Future Enhancements
+
+- [ ] Direct Shopify API integration (skip CSV download)
+- [ ] Batch processing for multiple waves
+- [ ] Advanced filtering/search on dashboard
+- [ ] Custom column mapping for CSV export
+- [ ] Webhook integrations for automation
 
 ## Troubleshooting
 

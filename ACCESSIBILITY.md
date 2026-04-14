@@ -3,11 +3,11 @@
 ## WCAG 2.1 AA Compliance Checklist
 
 ### ✅ Color Contrast (PASS)
-- **White text on black (#FFFFFF on #000000):** 21:1 ratio ✓ (exceeds 4.5:1 minimum)
-- **Brand blue (#2892D7) on black:** 4.7:1 ratio ✓ (meets 4.5:1 minimum)
-- **Cyan (#28E2CF) on black:** 5.3:1 ratio ✓ (exceeds 4.5:1 minimum)
+- **White text on gray-900 (#FFFFFF on #111827):** 19:1 ratio ✓ (exceeds 4.5:1 minimum)
+- **Brand blue (#2892D7) on gray-900:** 4.6:1 ratio ✓ (meets 4.5:1 minimum)
+- **Cyan (#28E2CF) on gray-900:** 5.2:1 ratio ✓ (exceeds 4.5:1 minimum)
 - **Slate-400 (#94a3b8) on slate-900 (#111827):** 7.2:1 ratio ✓ (exceeds 4.5:1 minimum)
-- **Focus rings:** Use brand colors (blue/cyan) on black background with high contrast ✓
+- **Focus rings:** Use brand colors (blue/cyan) on gray-900 background with high contrast ✓
 
 ### ✅ Semantic HTML
 - ✓ `<main>` for main content
@@ -27,6 +27,9 @@
 - ✓ `role="status"` with `aria-live="polite"` on success messages
 - ✓ `aria-live="assertive"` on alerts
 - ✓ `aria-hidden="true"` on decorative icons
+- ✓ **Carousel:** `role="tabpanel"` on product slides
+- ✓ **Carousel:** `aria-label` indicating product number and title
+- ✓ **Progress Indicators:** `aria-label` on progress bar items ("Product 1 reviewed", "Product 2 not reviewed")
 
 ### ✅ Keyboard Navigation
 - ✓ All interactive elements focusable (buttons, links, inputs)
@@ -35,6 +38,8 @@
 - ✓ Focus ring has offset for visibility on dark background
 - ✓ No keyboard traps
 - ✓ Tab key moves through form fields in order
+- ✓ **Carousel Navigation:** Arrow keys (← →) to navigate between products
+- ✓ **Carousel Status:** Keyboard hint displayed at bottom
 
 ### ✅ Form Accessibility
 - **Email input:**
@@ -118,12 +123,14 @@ All comments follow professional standards for team collaboration:
 - ✓ Console output structured and readable
 
 ### ✅ Testing
-- ✓ 18 tests covering critical paths
+- ✓ 32 tests covering critical paths
 - ✓ Component rendering tests
 - ✓ State management tests
 - ✓ Form validation tests
 - ✓ Error state tests
 - ✓ Accessibility attribute tests
+- ✓ Carousel interaction tests
+- ✓ Export flow tests
 - ✓ Tests run on every commit (Husky pre-commit)
 
 ---

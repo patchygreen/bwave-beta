@@ -30,6 +30,16 @@ export const ProductDataSchema = z.object({
 export type ValidatedProductData = z.infer<typeof ProductDataSchema>
 
 /**
+ * Wave data can be either:
+ * - Single product (legacy/simple case)
+ * - Array of products (multi-product invoices)
+ */
+export const ExtractedDataSchema = z.union([
+  ProductDataSchema,
+  z.array(ProductDataSchema),
+])
+
+/**
  * Validate and sanitize product data
  * @throws ZodError if validation fails
  */

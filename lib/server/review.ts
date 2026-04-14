@@ -10,17 +10,22 @@ import type { ProductData } from '@/lib/types'
  * Called from review page when user confirms edits
  *
  * Validates input before database write to prevent malformed data
+ * Supports both single product and multi-product arrays
  */
 export async function saveProductWave(
   waveId: string,
-  data: Partial<ProductData>
+  data: Partial<ProductData> | Partial<ProductData>[]
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // 0. Validate input shape and field limits
-    const validation = validateProductDataSafe(data)
-    if (!validation.success) {
-      logger.warn('📝 review', 'Invalid product data', { error: validation.error, waveId })
-      return { success: false, error: 'Invalid product data: ' + validation.error }
+    // Handle both single object and array of objects
+    const dataToValidate = Array.isArray(data) ? data : [data]
+    for (const product of dataToValidate) {
+      const validation = validateProductDataSafe(product)
+      if (!validation.success) {
+        logger.warn('📝 review', 'Invalid product data', { error: validation.error, waveId })
+        return { success: false, error: 'Invalid product data: ' + validation.error }
+      }
     }
 
     // 1. Authenticate
@@ -34,12 +39,13 @@ export async function saveProductWave(
       return { success: false, error: 'Not authenticated' }
     }
 
-    logger.info('💾 review', 'Saving product wave', { waveId, userId: user.id })
+    const productCount = Array.isArray(data) ? data.length : 1
+    logger.info('💾 review', 'Saving product wave', { waveId, userId: user.id, productCount })
 
     // 2. Update with ownership check (profile_id + waveId)
     const { error: updateError } = await supabase
       .from('product_waves')
-      .update({ extracted_data: validation.data })
+      .update({ extracted_data: data })
       .eq('id', waveId)
       .eq('profile_id', user.id) // Double-check ownership
 
@@ -48,7 +54,7 @@ export async function saveProductWave(
       return { success: false, error: 'Failed to save changes' }
     }
 
-    logger.info('✅ review', 'Product wave saved successfully', { waveId, userId: user.id })
+    logger.info('✅ review', 'Product wave saved successfully', { waveId, userId: user.id, productCount })
     return { success: true }
   } catch (error) {
     logger.error('❌ review', 'Error saving product wave', error instanceof Error ? error : new Error(String(error)), { waveId })

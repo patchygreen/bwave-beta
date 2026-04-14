@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-black">
+      <body className="min-h-screen bg-gray-900">
         <SentryProvider>{children}</SentryProvider>
       </body>
     </html>

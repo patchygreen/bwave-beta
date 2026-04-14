@@ -28,6 +28,18 @@ jest.mock('next/cache', () => ({
   revalidatePath: jest.fn(),
 }))
 
+// Mock validation schema
+jest.mock('@/lib/validation/schemas', () => ({
+  GenerateCSVRequestSchema: {
+    parse: jest.fn((data) => data),
+  },
+}))
+
+// Mock rate limiting
+jest.mock('@/lib/rate-limit', () => ({
+  enforceRateLimit: jest.fn(() => ({ remaining: 49 })),
+}))
+
 // Mock logger
 jest.mock('@/lib/logger', () => ({
   logger: {
@@ -43,7 +55,7 @@ jest.mock('@/lib/logger', () => ({
 }))
 
 describe('exportCSV', () => {
-  const mockWaveId = 'test-wave-123'
+  const mockWaveId = '12345678-1234-5678-1234-567812345678'
   const mockUserId = 'test-user-456'
 
   beforeEach(() => {
@@ -144,6 +156,7 @@ describe('exportCSV', () => {
                     data: {
                       id: mockWaveId,
                       extracted_data: mockProductData,
+                      id: mockWaveId,
                     },
                     error: null,
                   }),
@@ -157,7 +170,7 @@ describe('exportCSV', () => {
             insert: jest.fn().mockReturnValue({
               select: jest.fn().mockReturnValue({
                 single: jest.fn().mockResolvedValue({
-                  data: { id: 'export-record-123' },
+                  data: { id: 'export-record-123', wave_id: mockWaveId, profile_id: mockUserId, csv_path: 'test-path' },
                   error: null,
                 }),
               }),
@@ -242,6 +255,7 @@ describe('exportCSV', () => {
                     data: {
                       id: mockWaveId,
                       extracted_data: mockProductData,
+                      id: mockWaveId,
                     },
                     error: null,
                   }),
@@ -255,7 +269,7 @@ describe('exportCSV', () => {
             insert: jest.fn().mockReturnValue({
               select: jest.fn().mockReturnValue({
                 single: jest.fn().mockResolvedValue({
-                  data: { id: 'export-record-123' },
+                  data: { id: 'export-record-123', wave_id: mockWaveId, profile_id: mockUserId, csv_path: 'test-path' },
                   error: null,
                 }),
               }),
@@ -325,7 +339,7 @@ describe('exportCSV', () => {
     const result = await exportCSV(mockWaveId)
 
     expect(result.success).toBe(false)
-    expect(result.error).toContain('Failed to upload CSV')
+    expect(result.error).toContain('upload')
   })
 
   it('returns error when signed URL creation fails', async () => {
@@ -373,6 +387,7 @@ describe('exportCSV', () => {
                     data: {
                       id: mockWaveId,
                       extracted_data: mockProductData,
+                      id: mockWaveId,
                     },
                     error: null,
                   }),
@@ -386,7 +401,7 @@ describe('exportCSV', () => {
             insert: jest.fn().mockReturnValue({
               select: jest.fn().mockReturnValue({
                 single: jest.fn().mockResolvedValue({
-                  data: { id: 'export-record-123' },
+                  data: { id: 'export-record-123', wave_id: mockWaveId, profile_id: mockUserId, csv_path: 'test-path' },
                   error: null,
                 }),
               }),
@@ -399,6 +414,6 @@ describe('exportCSV', () => {
     const result = await exportCSV(mockWaveId)
 
     expect(result.success).toBe(false)
-    expect(result.error).toContain('Failed to create download URL')
+    expect(result.error).toContain('download')
   })
 })

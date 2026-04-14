@@ -5,13 +5,15 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { saveProductWave } from '@/lib/server/review'
 import { logger } from '@/lib/logger'
+import { ProductCarousel } from '@/components/ProductCarousel'
 import type { ProductData, ProductWave } from '@/lib/types'
 
 export default function ReviewPage({ params }: { params: Promise<{ waveId: string }> }) {
   const router = useRouter()
   const { waveId } = use(params)
   const [wave, setWave] = useState<ProductWave | null>(null)
-  const [data, setData] = useState<Partial<ProductData> | null>(null)
+  const [data, setData] = useState<Partial<ProductData> | Partial<ProductData>[] | null>(null)
+  const [allReviewed, setAllReviewed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -65,7 +67,7 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
 
   const handleArrayChange = (field: keyof ProductData, index: number, value: string) => {
     setData((prev) => {
-      if (!prev) return null
+      if (!prev || Array.isArray(prev)) return null
       const arr = Array.isArray(prev[field]) ? [...(prev[field] as string[])] : []
       arr[index] = value
       return { ...prev, [field]: arr }
@@ -74,7 +76,7 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
 
   const addArrayItem = (field: keyof ProductData) => {
     setData((prev) => {
-      if (!prev) return null
+      if (!prev || Array.isArray(prev)) return null
       const arr = Array.isArray(prev[field]) ? [...(prev[field] as string[])] : []
       arr.push('')
       return { ...prev, [field]: arr }
@@ -83,11 +85,22 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
 
   const removeArrayItem = (field: keyof ProductData, index: number) => {
     setData((prev) => {
-      if (!prev) return null
+      if (!prev || Array.isArray(prev)) return null
       const arr = Array.isArray(prev[field]) ? [...(prev[field] as string[])] : []
       arr.splice(index, 1)
       return { ...prev, [field]: arr }
     })
+  }
+
+  const handleUpdateProduct = (index: number, updatedData: Partial<ProductData>) => {
+    if (!data) return
+    if (Array.isArray(data)) {
+      const updated = [...data]
+      updated[index] = updatedData
+      setData(updated)
+    } else {
+      setData(updatedData)
+    }
   }
 
   const handleConfirm = async () => {
@@ -143,16 +156,33 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
     )
   }
 
+  // Check if multi-product
+  const isMultiProduct = Array.isArray(data) && data.length > 1
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-3xl font-light tracking-tight text-white mb-2">Review & Edit</h1>
-        <p className="text-slate-400">Make any corrections before exporting to Shopify CSV</p>
+        <p className="text-slate-400">{isMultiProduct ? 'Review and edit each product' : 'Make any corrections before exporting to Shopify CSV'}</p>
       </div>
 
       <div className="space-y-6">
-        {/* Basic Info */}
-        <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-6">
+        {/* Carousel for multi-product */}
+        {isMultiProduct && (
+          <ProductCarousel
+            products={data as ProductData[]}
+            onUpdate={handleUpdateProduct}
+            onAllReviewed={(callback) => {
+              setAllReviewed(callback())
+            }}
+          />
+        )}
+
+        {/* Original single-product form */}
+        {!isMultiProduct && data && !Array.isArray(data) && (
+          <div className="space-y-6">
+            {/* Basic Info */}
+            <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-6">
           <h2 className="text-lg font-medium text-white mb-4">📋 Product Information</h2>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -347,7 +377,9 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
               + Add Tag
             </button>
           </div>
-        </div>
+          </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-4 pt-6 border-t border-slate-700">
@@ -359,7 +391,8 @@ export default function ReviewPage({ params }: { params: Promise<{ waveId: strin
           </button>
           <button
             onClick={handleConfirm}
-            disabled={saving}
+            disabled={saving || (isMultiProduct && !allReviewed)}
+            title={isMultiProduct && !allReviewed ? 'Review all products before exporting' : ''}
             className="flex-1 px-4 py-2 bg-bwave-blue hover:bg-bwave-purple text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'Saving...' : '✅ Confirm & Export'}
