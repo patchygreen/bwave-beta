@@ -6,6 +6,43 @@ import { validateProductDataSafe } from '@/lib/validation/schemas'
 import type { ProductData } from '@/lib/types'
 
 /**
+ * Fetch wave data for review/export pages
+ * Returns product data as array (handles both single products and multi-product waves)
+ */
+export async function getWaveData(waveId: string): Promise<{ success: boolean; products?: ProductData[]; error?: string }> {
+  try {
+    const supabase = await createServerClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      logger.warn('🔐 review', 'Unauthorized fetch attempt - no user session')
+      return { success: false, error: 'Not authenticated' }
+    }
+
+    const { data: wave, error: waveError } = await supabase
+      .from('product_waves')
+      .select('extracted_data')
+      .eq('id', waveId)
+      .eq('profile_id', user.id)
+      .single()
+
+    if (waveError || !wave) {
+      logger.error('📝 review', 'Wave not found', new Error(waveError?.message || 'Unknown error'), { waveId })
+      return { success: false, error: 'Wave not found' }
+    }
+
+    // Handle both single product and array
+    const products = Array.isArray(wave.extracted_data) ? wave.extracted_data : [wave.extracted_data]
+    return { success: true, products }
+  } catch (error) {
+    logger.error('❌ review', 'Error fetching wave data', error instanceof Error ? error : new Error(String(error)), { waveId })
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+/**
  * Save extracted product data back to product_waves
  * Called from review page when user confirms edits
  *
