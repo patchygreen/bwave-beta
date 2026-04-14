@@ -304,6 +304,33 @@ function ProductReviewForm({
           </div>
         </div>
       </div>
+
+      {/* Inventory Quantities per Size */}
+      <div>
+        <label className="block text-sm font-medium text-slate-300 mb-2">📦 Inventory Quantities (per size)</label>
+        <div className="space-y-2">
+          {Array.isArray(data.sizes) && data.sizes.length > 0 ? (
+            data.sizes.map((size, idx) => (
+              <div key={idx} className="flex gap-2 items-center">
+                <span className="text-sm text-slate-400 w-16">{size}</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={data.quantities?.[size] || ''}
+                  onChange={(e) => {
+                    const newQuantities = { ...data.quantities, [size]: parseInt(e.target.value) || 0 }
+                    handleChange('quantities', newQuantities)
+                  }}
+                  className="flex-1 px-2 py-1 bg-slate-800/50 border border-slate-600 rounded text-white text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-bwave-blue focus:border-bwave-blue hover:bg-slate-800"
+                  placeholder="0"
+                />
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-slate-500">Add sizes above to set quantities</p>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

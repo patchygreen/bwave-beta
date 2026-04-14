@@ -198,6 +198,7 @@ function productsToShopifyCSV(products: ProductData[]): string {
     'Option1 Value',
     'Option2 Name',
     'Option2 Value',
+    'Variant Inventory Qty',
   ]
 
   const rows: string[][] = [headers]
@@ -220,6 +221,8 @@ function productsToShopifyCSV(products: ProductData[]): string {
     // Generate variant rows (Cartesian product: each size × each color)
     for (const size of sizes) {
       for (const color of colors) {
+        const qty = size && data.quantities?.[size] ? data.quantities[size].toString() : ''
+
         const row: string[] = [
           handle, // Handle
           titleStr, // Title
@@ -234,6 +237,7 @@ function productsToShopifyCSV(products: ProductData[]): string {
           size || '', // Option1 Value
           color ? 'Color' : '', // Option2 Name
           color || '', // Option2 Value
+          qty, // Variant Inventory Qty
         ]
 
         rows.push(row)

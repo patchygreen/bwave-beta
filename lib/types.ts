@@ -47,4 +47,5 @@ export type ProductData = {
   size_fit: string
   tags: string[]
   images: string[]
+  quantities?: Record<string, number> // Inventory qty per size (e.g., { "S": 10, "M": 5 })
 }

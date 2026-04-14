@@ -170,11 +170,18 @@ export default function ExportPage() {
                     {product.price && <span>•</span>}
                     {product.price && <span className="text-bwave-blue font-medium">${product.price}</span>}
                   </div>
-                  {(product.sizes?.length || 0) > 0 || (product.colors?.length || 0) > 0 ? (
-                    <p className="text-xs text-slate-500 mt-1">
-                      Variants: {(product.sizes?.length || 0)} sizes × {(product.colors?.length || 0)} colors
-                    </p>
-                  ) : null}
+                  <div className="mt-2 space-y-1">
+                    {((product.sizes?.length || 0) > 0 || (product.colors?.length || 0) > 0) && (
+                      <p className="text-xs text-slate-500">
+                        Variants: {(product.sizes?.length || 0)} sizes × {(product.colors?.length || 0)} colors
+                      </p>
+                    )}
+                    {product.quantities && Object.keys(product.quantities).length > 0 && (
+                      <p className="text-xs text-bwave-blue">
+                        Total stock: {Object.values(product.quantities).reduce((a, b) => a + b, 0)} units
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
